@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/row_view_bg_key">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/appearance_image"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="0dp"
+        android:layout_marginTop="0dp"
+        android:src="@drawable/list_butterfree"
+        android:scaleType="fitCenter" />
+
+    <ProgressBar
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/HP_progressBar"
+        android:progress="50"
+        android:minWidth="160dp"
+        android:layout_alignBottom="@+id/name"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="30dp"
+        android:layout_marginEnd="30dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="妙蛙種子"
+        android:id="@+id/name"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/appearance_image"
+        android:layout_toEndOf="@+id/appearance_image"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="lv."
+        android:id="@+id/level_prefix"
+        android:layout_below="@+id/name"
+        android:layout_toRightOf="@+id/appearance_image"
+        android:layout_toEndOf="@+id/appearance_image"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="170"
+        android:id="@+id/currentHP"
+        android:layout_below="@+id/HP_progressBar"
+        android:layout_alignLeft="@+id/HP_progressBar"
+        android:layout_alignStart="@+id/HP_progressBar" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="25"
+        android:id="@+id/level"
+        android:layout_alignTop="@+id/level_prefix"
+        android:layout_toRightOf="@+id/level_prefix"
+        android:layout_toEndOf="@+id/level_prefix"
+        android:layout_marginLeft="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="/"
+        android:id="@+id/HPSlash"
+        android:layout_alignBottom="@+id/currentHP"
+        android:layout_toRightOf="@+id/currentHP"
+        android:layout_toEndOf="@+id/currentHP"
+        android:layout_marginLeft="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="340"
+        android:id="@+id/maxHP"
+        android:layout_alignBottom="@+id/HPSlash"
+        android:layout_toRightOf="@+id/HPSlash"
+        android:layout_toEndOf="@+id/HPSlash"
+        android:layout_marginLeft="5dp" />
+</RelativeLayout>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_delete"
+        android:title="丟棄"
+        android:icon="@android:drawable/ic_delete"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_heal"
+        android:title="治療"
+        android:icon="@drawable/pokemon_center"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_settings"
+        android:title="設定"
+        app:showAsAction="never" />
+</menu>
