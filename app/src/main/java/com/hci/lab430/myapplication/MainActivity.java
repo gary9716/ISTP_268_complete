@@ -12,6 +12,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         Log.d("testStage","onRestoreInstance");
+        int selectedOptionIndex = savedInstanceState.getInt(optionSelectedKey, 0);
+        ((RadioButton)optionGroup.getChildAt(selectedOptionIndex)).setChecked(true);
         String nameStr = savedInstanceState.getString(nameEditTextKey, null);
         if(nameStr != null) {
             nameEditText.setText(nameStr);
