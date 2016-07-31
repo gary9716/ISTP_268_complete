@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -18,7 +17,7 @@ import com.squareup.picasso.Picasso;
 /**
  * Created by lab430 on 16/7/28.
  */
-public class PokemonDetailActivity extends AppCompatActivity{
+public class PokemonDetailActivity extends CustomizedActivity {
 
     //constant
     public final static int updateData = 1;
@@ -37,6 +36,8 @@ public class PokemonDetailActivity extends AppCompatActivity{
     TextView levelText;
     TextView currentHPText;
     TextView maxHPText;
+    TextView type1Text;
+    TextView type2Text;
     TextView[] skillsText = new TextView[PokemonInfo.numCurrentSkills];
     ProgressBar HPProgressBar;
 
@@ -60,6 +61,9 @@ public class PokemonDetailActivity extends AppCompatActivity{
         levelText = (TextView)findViewById(R.id.level_text);
         currentHPText = (TextView)findViewById(R.id.currentHP_text);
         maxHPText = (TextView)findViewById(R.id.maxHP_text);
+        type1Text = (TextView)findViewById(R.id.type_1_text);
+        type2Text = (TextView)findViewById(R.id.type_2_text);
+
         for(int i = 0;i < PokemonInfo.numCurrentSkills;i++) {
             int skillTextId = mRes.getIdentifier(String.format("skill_%d_text",i + 1), "id", packageName);
             skillsText[i] = (TextView) findViewById(skillTextId);
@@ -72,6 +76,19 @@ public class PokemonDetailActivity extends AppCompatActivity{
         levelText.setText(String.valueOf(mData.level));
         currentHPText.setText(String.valueOf(mData.currentHP));
         maxHPText.setText(String.valueOf(mData.maxHP));
+        if(mData.type_1 != -1) {
+            type1Text.setText(PokemonInfo.typeNames[mData.type_1]);
+        }
+        else {
+            type1Text.setText("");
+        }
+
+        if(mData.type_2 != -1) {
+            type2Text.setText(PokemonInfo.typeNames[mData.type_2]);
+        }
+        else {
+            type2Text.setText("");
+        }
         for(int i = 0;i < PokemonInfo.numCurrentSkills;i++) {
             if(mData.skill[i] != null) {
                 skillsText[i].setText(mData.skill[i]);

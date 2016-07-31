@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/7/22.
  */
-public class PokemonListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
+public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener{
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
     MediaPlayer mediaPlayer = null;
@@ -33,19 +34,22 @@ public class PokemonListActivity extends AppCompatActivity implements AdapterVie
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pokemon_list);
-
         handler = new Handler(getMainLooper());
         loadSongFromAssets("healing_sound2.mp3");
 
         dataManager = new OwningPokemonDataManager(this);
         ArrayList<PokemonInfo> pokemonInfos = dataManager.getPokemonInfos();
 
+        int selectedInitPokemonIndex = getIntent().getIntExtra(MainActivity.selectedPokemonIndexKey, 0);
+        PokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
+        pokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
+
         adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, pokemonInfos);
 
         ListView pokemonListView = (ListView)findViewById(R.id.pokemonListView);
         pokemonListView.setAdapter(adapter);
-
         pokemonListView.setOnItemClickListener(this);
+        pokemonListView.setOnItemLongClickListener(this);
 
     }
 
@@ -97,8 +101,11 @@ public class PokemonListActivity extends AppCompatActivity implements AdapterVie
         }
         else if(itemId == R.id.action_heal) {
             boolean shouldHeal = false;
+            // once the healing button has been pressed,
+            // we need to deselect the selected items in list view.
             for(PokemonInfo pokemonInfo : adapter.selectedPokemons) {
                 pokemonInfo.isSelected = false;
+                //check whether we need to show the effect
                 if(pokemonInfo.currentHP < pokemonInfo.maxHP) {
                     shouldHeal = true;
                 }
@@ -115,7 +122,6 @@ public class PokemonListActivity extends AppCompatActivity implements AdapterVie
                     public void run() {
                         for (PokemonInfo pokemonInfo : adapter.selectedPokemons) {
                             pokemonInfo.isHealing = true;
-                            pokemonInfo.isSelected = false;
                         }
                         adapter.notifyDataSetChanged();
                         adapter.selectedPokemons.clear();
@@ -139,8 +145,7 @@ public class PokemonListActivity extends AppCompatActivity implements AdapterVie
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-//        Toast.makeText(this, "你點到了:" + ((TextView)view.findViewById(R.id.name)).getText().toString(), Toast.LENGTH_LONG).show();
-        if(itemIsClickable) {
+        if(itemIsClickable) { //avoid repeating trigger
             itemIsClickable = false;
             PokemonInfo pokemonInfo = adapter.getItem(position);
             Intent detailActIntent = new Intent();
@@ -149,6 +154,12 @@ public class PokemonListActivity extends AppCompatActivity implements AdapterVie
             startActivityForResult(detailActIntent, detailActRequestCode);
         }
 
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
+        adapter.selectRow(view);
+        return true;
     }
 
     @Override
@@ -168,11 +179,19 @@ public class PokemonListActivity extends AppCompatActivity implements AdapterVie
             }
             else if(resultCode == PokemonDetailActivity.updateData) {
                 //also some logic here.
+
             }
 
-            itemIsClickable = true;
         }
 
 
     }
+
+    @Override
+    protected void onStop() {
+        itemIsClickable = true;
+        super.onStop();
+    }
+
+
 }

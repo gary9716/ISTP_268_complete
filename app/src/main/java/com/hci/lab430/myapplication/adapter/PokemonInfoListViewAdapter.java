@@ -1,5 +1,6 @@
 package com.hci.lab430.myapplication.adapter;
 
+import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
@@ -98,6 +99,11 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         notifyDataSetChanged();
     }
 
+    public void selectRow(View rowView) {
+        //once a row view has been initiated, it should be bound with a view holder
+        ViewHolder viewHolder = (ViewHolder)rowView.getTag();
+        viewHolder.setSelected();
+    }
 
     public static class ViewHolder implements View.OnClickListener{
 
@@ -137,25 +143,9 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
             mMaxHPTxt.setText(String.valueOf(data.maxHP));
 
             if(mPokemonInfo.isHealing && mPokemonInfo.currentHP < mPokemonInfo.maxHP) {
-                int animationDuration = 1500;
-                ObjectAnimator hpBarAnimator = ObjectAnimator.ofInt(mHPBar, "progress", mHPBar.getProgress(), 100);
-                hpBarAnimator.setDuration(animationDuration);
-
-                ValueAnimator hpTextAnimator = new ValueAnimator();
-                hpTextAnimator.setObjectValues(data.currentHP, data.maxHP);// here you set the range, from 0 to "count" value
-                hpTextAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        mPokemonInfo.currentHP = (int)animation.getAnimatedValue();
-                        mCurrentHPTxt.setText(String.valueOf(mPokemonInfo.currentHP));
-                    }
-                });
-                hpTextAnimator.setDuration(animationDuration); // here you set the duration of the anim
-
-                hpTextAnimator.start();
-                hpBarAnimator.start();
+                animateHPBarAndCurrentHP();
             }
             else {
-                mPokemonInfo.isHealing = false;
                 mCurrentHPTxt.setText(String.valueOf(data.currentHP));
                 mHPBar.setProgress((int)(((float)data.currentHP/data.maxHP) * 100));
             }
@@ -165,15 +155,55 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         public void setSelected() {
             mPokemonInfo.isSelected = !mPokemonInfo.isSelected;
             mRowView.setActivated(mPokemonInfo.isSelected);
+            mAdapter.onPokemonSelectedChange(mPokemonInfo);
         }
 
         @Override
         public void onClick(View view) {
             int viewId = view.getId();
-            if(viewId == R.id.appearance_image) {
+            if (viewId == R.id.appearance_image) {
                 setSelected();
-                mAdapter.onPokemonSelectedChange(mPokemonInfo);
             }
+        }
+
+        private void animateHPBarAndCurrentHP() {
+            //play animation
+            int animationDuration = 1500;
+            ObjectAnimator hpBarAnimator = ObjectAnimator.ofInt(mHPBar, "progress", mHPBar.getProgress(), 100);
+            hpBarAnimator.setDuration(animationDuration);
+
+            ValueAnimator hpTextAnimator = new ValueAnimator();
+            hpTextAnimator.setObjectValues(mPokemonInfo.currentHP, mPokemonInfo.maxHP);// here you set the range, from 0 to "count" value
+            hpTextAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    mPokemonInfo.currentHP = (int) animation.getAnimatedValue();
+                    mCurrentHPTxt.setText(String.valueOf(mPokemonInfo.currentHP));
+                }
+            });
+            hpTextAnimator.setDuration(animationDuration); // here you set the duration of the anim
+            hpTextAnimator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animator) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animator) {
+                    mPokemonInfo.isHealing = false;
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animator) {
+                    mPokemonInfo.isHealing = false;
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animator) {
+
+                }
+            });
+            hpTextAnimator.start();
+            hpBarAnimator.start();
         }
 
     }

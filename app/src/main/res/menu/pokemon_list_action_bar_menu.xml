@@ -14,5 +14,6 @@
     <item
         android:id="@+id/action_settings"
         android:title="設定"
+        android:icon="@android:drawable/ic_dialog_info"
         app:showAsAction="never" />
 </menu>
