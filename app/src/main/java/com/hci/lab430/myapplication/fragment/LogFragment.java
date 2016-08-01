@@ -60,5 +60,5 @@ public class LogFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         Log.d(debug_tag, actualName + " is in onViewCreated");
     }
-    
+
 }
