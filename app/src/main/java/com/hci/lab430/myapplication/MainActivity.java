@@ -102,14 +102,21 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
 
     private void changeUIAccordingToRecord() {
         if(uiSetting == UISetting.DataIsKnown) {
+            //hide these UI
             nameEditText.setVisibility(View.INVISIBLE);
             confirmBtn.setVisibility(View.INVISIBLE);
             optionGroup.setVisibility(View.INVISIBLE);
-
+            //show progress bar
+            progressBar.setVisibility(View.VISIBLE);
             //although button is invisible, we can still simulate the button clicked.
             confirmBtn.performClick();
         }
         else {
+            //show these UI
+            nameEditText.setVisibility(View.VISIBLE);
+            confirmBtn.setVisibility(View.VISIBLE);
+            optionGroup.setVisibility(View.VISIBLE);
+            //hide progress bar
             progressBar.setVisibility(View.INVISIBLE);
         }
     }

@@ -1,16 +1,16 @@
 package com.hci.lab430.myapplication;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -24,11 +24,12 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/7/22.
  */
-public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener{
+public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener{
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
     MediaPlayer mediaPlayer = null;
     Handler handler;
+    AlertDialog deleteActionDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,7 +41,9 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         dataManager = new OwningPokemonDataManager(this);
         ArrayList<PokemonInfo> pokemonInfos = dataManager.getPokemonInfos();
 
-        int selectedInitPokemonIndex = getIntent().getIntExtra(MainActivity.selectedPokemonIndexKey, 0);
+        Intent srcIntent = getIntent();
+        int selectedInitPokemonIndex =
+                srcIntent.getIntExtra(MainActivity.selectedPokemonIndexKey, 0);
         PokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
         pokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
 
@@ -51,6 +54,13 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         pokemonListView.setOnItemClickListener(this);
         pokemonListView.setOnItemLongClickListener(this);
 
+        deleteActionDialog = new AlertDialog.Builder(this)
+                .setMessage("你確定要丟棄神奇寶貝們嗎？")
+                .setTitle("警告")
+                .setNegativeButton("取消", this)
+                .setPositiveButton("確認", this)
+                .setCancelable(false)
+                .create();
     }
 
     private void loadSongFromAssets(String fileName) {
@@ -90,13 +100,7 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if(itemId == R.id.action_delete) {
-
-            for(PokemonInfo pokemonInfo : adapter.selectedPokemons) {
-                adapter.remove(pokemonInfo);
-            }
-            adapter.selectedPokemons.clear();
-            invalidateOptionsMenu();
-
+            deleteActionDialog.show();
             return true;
         }
         else if(itemId == R.id.action_heal) {
@@ -132,7 +136,6 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
             return true;
         }
         else if(itemId == R.id.action_settings) {
-
             return true;
         }
 
@@ -193,5 +196,18 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         super.onStop();
     }
 
-
+    @Override
+    public void onClick(DialogInterface dialogInterface, int which) {
+        if(dialogInterface.equals(deleteActionDialog)) {
+            if (which == AlertDialog.BUTTON_POSITIVE) {
+                for(PokemonInfo pokemonInfo : adapter.selectedPokemons) {
+                    adapter.remove(pokemonInfo);
+                }
+                adapter.selectedPokemons.clear();
+                invalidateOptionsMenu();
+            } else if (which == AlertDialog.BUTTON_NEGATIVE) {
+                Toast.makeText(this, "取消丟棄", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
