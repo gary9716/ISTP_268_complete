@@ -14,18 +14,21 @@
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
 
         </activity>
         <activity android:name=".PokemonListActivity"
             android:screenOrientation="portrait">
         </activity>
         <activity android:name=".PokemonDetailActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait">
+
+
+        </activity>
         <activity android:name=".FragmentTestActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity android:name=".DrawerActivity"
             android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar">
