@@ -3,7 +3,6 @@ package com.hci.lab430.myapplication.fragment;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -22,7 +21,6 @@ import android.widget.Toast;
 
 import com.hci.lab430.myapplication.MainActivity;
 import com.hci.lab430.myapplication.PokemonDetailActivity;
-import com.hci.lab430.myapplication.PokemonListActivity;
 import com.hci.lab430.myapplication.R;
 import com.hci.lab430.myapplication.adapter.PokemonInfoListViewAdapter;
 import com.hci.lab430.myapplication.model.OwningPokemonDataManager;
@@ -164,7 +162,48 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
+        int itemId = item.getItemId();
+        if(itemId == R.id.action_delete) {
+            deleteActionDialog.show();
+            return true;
+        }
+        else if(itemId == R.id.action_heal) {
+            boolean shouldHeal = false;
+            // once the healing button has been pressed,
+            // we need to deselect the selected items in list view.
+            for(PokemonInfo pokemonInfo : adapter.selectedPokemons) {
+                pokemonInfo.isSelected = false;
+                //check whether we need to show the effect
+                if(pokemonInfo.getCurrentHP() < pokemonInfo.getMaxHP()) {
+                    shouldHeal = true;
+                }
+
+            }
+            adapter.notifyDataSetChanged();
+
+            if(shouldHeal) {
+                mediaPlayer.setVolume(1.0f, 1.0f);
+                mediaPlayer.start();
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (PokemonInfo pokemonInfo : adapter.selectedPokemons) {
+                            pokemonInfo.isHealing = true;
+                        }
+                        adapter.notifyDataSetChanged();
+                        adapter.selectedPokemons.clear();
+                        setHasOptionsMenu(false);
+                    }
+                }, 1000);
+            }
+            return true;
+        }
+        else if(itemId == R.id.action_settings) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

@@ -38,7 +38,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         mInflater = LayoutInflater.from(context);
         mPicasso = Picasso.with(context);
         selectedPokemons = new ArrayList<>();
-        
+
     }
 
     public PokemonInfoListViewAdapter(Context context,
