@@ -20,6 +20,12 @@
             android:text="fragment2"
             android:id="@+id/fragment_2" />
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Test remove"
+            android:id="@+id/fragment_2_remove" />
+
     </LinearLayout>
 
     <FrameLayout

@@ -4,7 +4,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
-import android.graphics.Bitmap;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +14,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.hci.lab430.myapplication.R;
-import com.hci.lab430.myapplication.model.FilePath;
 import com.hci.lab430.myapplication.model.PokemonInfo;
 import com.squareup.picasso.Picasso;
 
@@ -29,19 +28,29 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
     LayoutInflater mInflater;
     Picasso mPicasso;
     public ArrayList<PokemonInfo> selectedPokemons;
-    Activity mActivity;
+    onPokemonInfoStateChangeListener stateChangeListener = null;
 
-    public PokemonInfoListViewAdapter(Activity activity,
+    public PokemonInfoListViewAdapter(Context context,
                                       int resource,
                                       ArrayList<PokemonInfo> objects) {
-        super(activity, resource, objects);
-        mActivity = activity;
+        super(context, resource, objects);
         mRow_layout_id = resource;
-        mInflater = LayoutInflater.from(activity);
-        mPicasso = Picasso.with(activity);
+        mInflater = LayoutInflater.from(context);
+        mPicasso = Picasso.with(context);
         selectedPokemons = new ArrayList<>();
 
     }
+
+    public PokemonInfoListViewAdapter(Context context,
+                                      int resource,
+                                      ArrayList<PokemonInfo> objects,
+                                      onPokemonInfoStateChangeListener listener) {
+        this(context, resource, objects);
+        stateChangeListener = listener;
+
+    }
+
+
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -61,9 +70,13 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         return convertView;
     }
 
+    public interface onPokemonInfoStateChangeListener {
+        void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter);
+    }
+
     void onPokemonSelectedChange(PokemonInfo pokemonInfo) {
-        if(selectedPokemons.size() == 0) {
-            mActivity.invalidateOptionsMenu();
+        if(stateChangeListener != null && selectedPokemons.size() == 0) {
+            stateChangeListener.onPokemonInfoSelectedChange(this);
         }
 
         if(pokemonInfo.isSelected) {
@@ -73,16 +86,22 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
             selectedPokemons.remove(pokemonInfo);
         }
 
-        if(selectedPokemons.size() == 0) {
-            mActivity.invalidateOptionsMenu();
+        if(stateChangeListener != null && selectedPokemons.size() == 0) {
+            stateChangeListener.onPokemonInfoSelectedChange(this);
         }
+    }
+
+    @Override
+    public void remove(PokemonInfo object) {
+        selectedPokemons.remove(object);
+        super.remove(object);
     }
 
     public PokemonInfo getItemWithName(String name) {
 
         for(int i = 0;i < getCount();i++) {
             PokemonInfo pokemonInfo = getItem(i);
-            if(name.equals(pokemonInfo.name)) {
+            if(name.equals(pokemonInfo.getName())) {
                 return pokemonInfo;
             }
         }
@@ -91,11 +110,11 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
     }
 
     public void update(PokemonInfo newData) {
-        PokemonInfo oldData = getItemWithName(newData.name);
-        oldData.skill = newData.skill;
-        oldData.currentHP = newData.currentHP;
-        oldData.maxHP = newData.maxHP;
-        oldData.level = newData.level;
+        PokemonInfo oldData = getItemWithName(newData.getName());
+        oldData.setSkill(newData.getSkill());
+        oldData.setCurrentHP(newData.getCurrentHP());
+        oldData.setMaxHP(newData.getMaxHP());
+        oldData.setLevel(newData.getLevel());
         notifyDataSetChanged();
     }
 
@@ -135,19 +154,19 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
             mPokemonInfo = data;
 
             mRowView.setActivated(mPokemonInfo.isSelected);
-            mPicasso.load(data.listImgId).into(mAppearanceImg);
+            mPicasso.load(data.getListImgId()).into(mAppearanceImg);
             mAppearanceImg.setOnClickListener(this);
 
-            mNameTxt.setText(data.name);
-            mLevelTxt.setText(String.valueOf(data.level));
-            mMaxHPTxt.setText(String.valueOf(data.maxHP));
+            mNameTxt.setText(data.getName());
+            mLevelTxt.setText(String.valueOf(data.getLevel()));
+            mMaxHPTxt.setText(String.valueOf(data.getMaxHP()));
 
-            if(mPokemonInfo.isHealing && mPokemonInfo.currentHP < mPokemonInfo.maxHP) {
+            if(mPokemonInfo.isHealing && mPokemonInfo.getCurrentHP() < mPokemonInfo.getMaxHP()) {
                 animateHPBarAndCurrentHP();
             }
             else {
-                mCurrentHPTxt.setText(String.valueOf(data.currentHP));
-                mHPBar.setProgress((int)(((float)data.currentHP/data.maxHP) * 100));
+                mCurrentHPTxt.setText(String.valueOf(data.getCurrentHP()));
+                mHPBar.setProgress((int)(((float) data.getCurrentHP() / data.getMaxHP()) * 100));
             }
 
         }
@@ -173,11 +192,11 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
             hpBarAnimator.setDuration(animationDuration);
 
             ValueAnimator hpTextAnimator = new ValueAnimator();
-            hpTextAnimator.setObjectValues(mPokemonInfo.currentHP, mPokemonInfo.maxHP);// here you set the range, from 0 to "count" value
+            hpTextAnimator.setObjectValues(mPokemonInfo.getCurrentHP(), mPokemonInfo.getMaxHP());// here you set the range, from 0 to "count" value
             hpTextAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    mPokemonInfo.currentHP = (int) animation.getAnimatedValue();
-                    mCurrentHPTxt.setText(String.valueOf(mPokemonInfo.currentHP));
+                    mPokemonInfo.setCurrentHP((int) animation.getAnimatedValue());
+                    mCurrentHPTxt.setText(String.valueOf(mPokemonInfo.getCurrentHP()));
                 }
             });
             hpTextAnimator.setDuration(animationDuration); // here you set the duration of the anim

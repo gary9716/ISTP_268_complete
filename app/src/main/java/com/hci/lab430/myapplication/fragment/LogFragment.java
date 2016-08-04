@@ -61,4 +61,27 @@ public class LogFragment extends Fragment {
         Log.d(debug_tag, actualName + " is in onViewCreated");
     }
 
+    @Override
+    public void onStop() {
+        Log.d(debug_tag, actualName + " is in onStop");
+        super.onStop();
+    }
+
+    @Override
+    public void onPause() {
+        Log.d(debug_tag, actualName + " is in onPause");
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(debug_tag, actualName + " is in onResume");
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(debug_tag, actualName + " is in onStart");
+    }
 }

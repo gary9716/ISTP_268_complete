@@ -31,6 +31,7 @@ public class TestFragment1 extends LogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //retrieve the data from the saved arguments
         mMessage = getArguments().getString(msgTextKey);
     }
 
@@ -38,7 +39,11 @@ public class TestFragment1 extends LogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
+        // generate View object by
+        // inflating the layout that would be controlled by this fragment
         View fragmentView = inflater.inflate(R.layout.fragment1_layout, container, false);
+
+        //bind view with data
         ((TextView)fragmentView.findViewById(R.id.textView)).setText(mMessage);
 
         return fragmentView;

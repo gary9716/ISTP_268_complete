@@ -1,6 +1,7 @@
 package com.hci.lab430.myapplication;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
@@ -18,13 +19,14 @@ import android.widget.Toast;
 import com.hci.lab430.myapplication.adapter.PokemonInfoListViewAdapter;
 import com.hci.lab430.myapplication.model.OwningPokemonDataManager;
 import com.hci.lab430.myapplication.model.PokemonInfo;
+import com.hci.lab430.myapplication.model.Utils;
 
 import java.util.ArrayList;
 
 /**
  * Created by lab430 on 16/7/22.
  */
-public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener{
+public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.onPokemonInfoStateChangeListener {
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
     MediaPlayer mediaPlayer = null;
@@ -35,9 +37,9 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pokemon_list);
-        handler = new Handler(getMainLooper());
-        loadSongFromAssets("healing_sound2.mp3");
 
+        handler = new Handler(getMainLooper());
+        mediaPlayer = Utils.loadSongFromAssets(this,"healing_sound2.mp3");
         dataManager = new OwningPokemonDataManager(this);
         ArrayList<PokemonInfo> pokemonInfos = dataManager.getPokemonInfos();
 
@@ -47,7 +49,7 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         PokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
         pokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
 
-        adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, pokemonInfos);
+        adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, pokemonInfos, this);
 
         ListView pokemonListView = (ListView)findViewById(R.id.pokemonListView);
         pokemonListView.setAdapter(adapter);
@@ -62,27 +64,6 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
                 .setCancelable(false)
                 .create();
     }
-
-    private void loadSongFromAssets(String fileName) {
-        try {
-            AssetFileDescriptor descriptor;
-            descriptor = getAssets().openFd(fileName);
-            if(descriptor != null) {
-                mediaPlayer = new MediaPlayer();
-
-                long start = descriptor.getStartOffset();
-                long end = descriptor.getLength();
-
-                mediaPlayer.setDataSource(descriptor.getFileDescriptor(), start, end);
-                mediaPlayer.prepareAsync();
-            }
-
-        }
-        catch(Exception e) {
-            mediaPlayer = null;
-        }
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -110,7 +91,7 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
             for(PokemonInfo pokemonInfo : adapter.selectedPokemons) {
                 pokemonInfo.isSelected = false;
                 //check whether we need to show the effect
-                if(pokemonInfo.currentHP < pokemonInfo.maxHP) {
+                if(pokemonInfo.getCurrentHP() < pokemonInfo.getMaxHP()) {
                     shouldHeal = true;
                 }
 
@@ -176,7 +157,7 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
                     PokemonInfo pokemonInfo = adapter.getItemWithName(nameToRemove);
                     if(pokemonInfo != null) {
                         adapter.remove(pokemonInfo);
-                        Toast.makeText(PokemonListActivity.this, String.format("%s已經被存入電腦中",pokemonInfo.name),Toast.LENGTH_LONG).show();
+                        Toast.makeText(PokemonListActivity.this, String.format("%s已經被存入電腦中", pokemonInfo.getName()),Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -203,11 +184,15 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
                 for(PokemonInfo pokemonInfo : adapter.selectedPokemons) {
                     adapter.remove(pokemonInfo);
                 }
-                adapter.selectedPokemons.clear();
                 invalidateOptionsMenu();
             } else if (which == AlertDialog.BUTTON_NEGATIVE) {
                 Toast.makeText(this, "取消丟棄", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    @Override
+    public void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter) {
+        invalidateOptionsMenu();
     }
 }

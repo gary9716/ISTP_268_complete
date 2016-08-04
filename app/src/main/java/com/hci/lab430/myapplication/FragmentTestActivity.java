@@ -27,6 +27,7 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
         fragmentContainerId = R.id.fragmentContainer;
         findViewById(R.id.fragment_1).setOnClickListener(this);
         findViewById(R.id.fragment_2).setOnClickListener(this);
+        findViewById(R.id.fragment_2_remove).setOnClickListener(this);
 
         fragmentManager = getFragmentManager();
 
@@ -60,7 +61,16 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
                 displayFragment(fragments[1]);
             }
         }
+        else if(viewId == R.id.fragment_2_remove) {
+            removeTheFragment(fragments[1]);
+        }
 
+    }
+
+    private void removeTheFragment(Fragment fragment) {
+        if(fragment.isAdded()) {
+            fragmentManager.beginTransaction().remove(fragment).commit();
+        }
     }
 
     private void replaceWithTheFragment(Fragment fragment) {
