@@ -34,7 +34,7 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/8/4.
  */
-public class PokemonListFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener{
+public class PokemonListFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.onPokemonInfoStateChangeListener{
 
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
@@ -72,7 +72,7 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
 
         View rootView = inflater.inflate(R.layout.pokemon_list, container, false);
 
-        adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view, pokemonInfos);
+        adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view, pokemonInfos, this);
         ListView pokemonListView = (ListView)rootView.findViewById(R.id.pokemonListView);
         pokemonListView.setAdapter(adapter);
         pokemonListView.setOnItemClickListener(this);
@@ -86,7 +86,7 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
                 .setCancelable(false)
                 .create();
 
-        setHasOptionsMenu(true);
+        setHasOptionsMenu(false);
 
         return rootView;
 
@@ -157,10 +157,6 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
         }
     }
 
-//    public void changeOptionsMenuVisibility(boolean show) {
-//        setHasOptionsMenu(show);
-//    }
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.pokemon_list_action_bar_menu, menu);
@@ -169,5 +165,15 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter) {
+        if(adapter.selectedPokemons.size() == 0) {
+            setHasOptionsMenu(false);
+        }
+        else {
+            setHasOptionsMenu(true);
+        }
     }
 }

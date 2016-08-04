@@ -1,11 +1,14 @@
 package com.hci.lab430.myapplication;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.View;
 
+import com.hci.lab430.myapplication.fragment.PokemonListFragment;
 import com.hci.lab430.myapplication.model.Utils;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -24,6 +27,7 @@ public class DrawerActivity extends CustomizedActivity {
     private Drawer result;
     private AccountHeader headerResult = null;
     private IProfile profile;
+    private FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,13 +62,17 @@ public class DrawerActivity extends CustomizedActivity {
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-    }
+        fragmentManager = getFragmentManager();
+        Fragment fragment = PokemonListFragment.newInstance();
+        fragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit();
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.pokemon_detail_action_bar_menu, menu);
-        return true;
     }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.pokemon_detail_action_bar_menu, menu);
+//        return true;
+//    }
 
     private void buildDrawerHeader(boolean compact, Bundle savedInstanceState) {
         // Create the AccountHeader

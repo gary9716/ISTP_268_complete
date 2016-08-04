@@ -38,7 +38,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         mInflater = LayoutInflater.from(context);
         mPicasso = Picasso.with(context);
         selectedPokemons = new ArrayList<>();
-
+        
     }
 
     public PokemonInfoListViewAdapter(Context context,
@@ -75,7 +75,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
     }
 
     void onPokemonSelectedChange(PokemonInfo pokemonInfo) {
-        if(stateChangeListener != null && selectedPokemons.size() == 0) {
+        if(stateChangeListener != null) {
             stateChangeListener.onPokemonInfoSelectedChange(this);
         }
 
@@ -86,7 +86,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
             selectedPokemons.remove(pokemonInfo);
         }
 
-        if(stateChangeListener != null && selectedPokemons.size() == 0) {
+        if(stateChangeListener != null) {
             stateChangeListener.onPokemonInfoSelectedChange(this);
         }
     }
