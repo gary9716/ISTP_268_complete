@@ -7,13 +7,12 @@ import com.parse.ParseClassName;
 import com.parse.ParseObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by lab430 on 16/7/16.
  */
-//@ParseClassName("PokemonInfo")
-public class PokemonInfo implements Parcelable {
+@ParseClassName("PokemonInfo")
+public class PokemonInfo extends ParseObject implements Parcelable {
 
     public final static int maxNumSkills = 4;
     public static String[] typeNames;
@@ -32,16 +31,16 @@ public class PokemonInfo implements Parcelable {
     public boolean isSelected = false;
     public boolean isHealing = false;
 
-    private int listImgId;
-    private String name;
-    private int level;
-    private int currentHP;
-    private int maxHP;
-
-    //detail info
-    private int detailImgId;
-    private int type_1;
-    private int type_2;
+//    private int listImgId;
+//    private String name;
+//    private int level;
+//    private int currentHP;
+//    private int maxHP;
+//
+//    //detail info
+//    private int detailImgId;
+//    private int type_1;
+//    private int type_2;
     private String[] skill = new String[maxNumSkills];
 
     @Override
@@ -90,83 +89,67 @@ public class PokemonInfo implements Parcelable {
     };
 
     public int getListImgId() {
-//        return getInt(listImgIdKey);
-        return this.listImgId;
+        return getInt(listImgIdKey);
     }
 
     public void setListImgId(int listImgId) {
-//        put(listImgIdKey,listImgId);
-        this.listImgId = listImgId;
+        put(listImgIdKey,listImgId);
     }
 
     public String getName() {
-//        return getString(nameKey);
-        return this.name;
+        return getString(nameKey);
     }
 
     public void setName(String name) {
-//        put(nameKey,name);
-        this.name = name;
+        put(nameKey,name);
     }
 
     public int getLevel() {
-//        return getInt(levelKey);
-        return this.level;
+        return getInt(levelKey);
     }
 
     public void setLevel(int level) {
-//        put(levelKey,level);
-        this.level = level;
+        put(levelKey,level);
     }
 
     public int getCurrentHP() {
-//        return getInt(currentHPKey);
-        return this.currentHP;
+        return getInt(currentHPKey);
     }
 
     public void setCurrentHP(int currentHP) {
-//        put(currentHPKey,currentHP);
-        this.currentHP = currentHP;
+        put(currentHPKey,currentHP);
     }
 
     public int getMaxHP() {
-//        return getInt(maxHPKey);
-        return this.maxHP;
+        return getInt(maxHPKey);
     }
 
     public void setMaxHP(int maxHP) {
-//        put(maxHPKey, maxHP);
-        this.maxHP = maxHP;
+        put(maxHPKey, maxHP);
     }
 
     public int getDetailImgId() {
-//        return getInt(detailImgIdKey);
-        return this.detailImgId;
+        return getInt(detailImgIdKey);
     }
 
     public void setDetailImgId(int detailImgId) {
-//        put(detailImgIdKey, detailImgId);
-        this.detailImgId = detailImgId;
+        put(detailImgIdKey, detailImgId);
     }
 
     public int getType_1() {
-//        return getInt(type1Key);
-        return this.type_1;
+        return getInt(type1Key);
     }
 
     public void setType_1(int type_1) {
-//        put(type1Key,type_1);
-        this.type_1 = type_1;
+        put(type1Key,type_1);
     }
 
     public int getType_2() {
-//        return getInt(type2Key);
-        return this.type_2;
+        return getInt(type2Key);
     }
 
     public void setType_2(int type_2) {
-//        put(type2Key,type_2);
-        this.type_2 = type_2;
+        put(type2Key,type_2);
     }
 
     public String[] getSkill() {
@@ -174,11 +157,11 @@ public class PokemonInfo implements Parcelable {
     }
 
     public void setSkill(String[] skill) {
-//        ArrayList<String> skillList = new ArrayList<>(skill.length);
-//        for(String skillName : skill) {
-//            skillList.add(skillName);
-//        }
-//        put(skillKey, skillList);
+        ArrayList<String> skillList = new ArrayList<>(skill.length);
+        for(String skillName : skill) {
+            skillList.add(skillName);
+        }
+        put(skillKey, skillList);
 
         this.skill = skill;
     }

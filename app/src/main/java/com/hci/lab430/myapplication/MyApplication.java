@@ -15,13 +15,13 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        ParseObject.registerSubclass(PokemonInfo.class);
-//        Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
-//                .applicationId("aBriKu0h4EZgnb8Sft9Uv4HyDZHOj01WZQp3jPs1")
-//                .clientKey("YJy27NUjuLfJaicKAFReic3gpCFxdemFsPrsQj05")
-//                .server("https://parseapi.back4app.com/")
-//                .enableLocalDataStore()
-//                .build());
+        ParseObject.registerSubclass(PokemonInfo.class);
+        Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
+                .applicationId("aBriKu0h4EZgnb8Sft9Uv4HyDZHOj01WZQp3jPs1")
+                .clientKey("YJy27NUjuLfJaicKAFReic3gpCFxdemFsPrsQj05")
+                .server("https://parseapi.back4app.com/")
+                .enableLocalDataStore()
+                .build());
 
 
     }

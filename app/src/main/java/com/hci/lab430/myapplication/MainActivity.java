@@ -175,7 +175,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
                 public void run() {
                     Intent intent = new Intent();
                     intent.putExtra(selectedPokemonIndexKey, selectedOptionIndex);
-                    intent.setClass(MainActivity.this, PokemonListActivity.class);
+                    intent.setClass(MainActivity.this, DrawerActivity.class);
                     startActivity(intent);
                     MainActivity.this.finish();
                 }

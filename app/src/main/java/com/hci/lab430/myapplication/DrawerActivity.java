@@ -2,13 +2,14 @@ package com.hci.lab430.myapplication;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.View;
 
 import com.hci.lab430.myapplication.fragment.PokemonListFragment;
+import com.hci.lab430.myapplication.fragment.TestFragment1;
 import com.hci.lab430.myapplication.model.Utils;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -28,7 +29,7 @@ public class DrawerActivity extends CustomizedActivity {
     private AccountHeader headerResult = null;
     private IProfile profile;
     private FragmentManager fragmentManager;
-
+    private Fragment[] fragments;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +56,8 @@ public class DrawerActivity extends CustomizedActivity {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                         // do something with the clicked item :D
-
+                        //first item come with index 1
+                        replaceWithTheFragment(fragments[position - 1]);
                         return false; //return false to bound back the drawer after clicking
                     }
                 })
@@ -63,16 +65,16 @@ public class DrawerActivity extends CustomizedActivity {
                 .build();
 
         fragmentManager = getFragmentManager();
-        Fragment fragment = PokemonListFragment.newInstance();
-        fragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit();
+        fragments = new Fragment[3];
+        fragments[0] = PokemonListFragment.newInstance();
+        fragments[1] = TestFragment1.newInstance("fake 1");
+        fragments[2] = TestFragment1.newInstance("fake 2");
+
+        for(int i = fragments.length - 1;i >= 0;i--) {
+            replaceWithTheFragment(fragments[i]);
+        }
 
     }
-//
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.pokemon_detail_action_bar_menu, menu);
-//        return true;
-//    }
 
     private void buildDrawerHeader(boolean compact, Bundle savedInstanceState) {
         // Create the AccountHeader
@@ -104,4 +106,10 @@ public class DrawerActivity extends CustomizedActivity {
         }
     }
 
+    private void replaceWithTheFragment(Fragment fragment) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.fragmentContainer, fragment);
+        transaction.addToBackStack(null); //let back button be able to reverse this commitment
+        transaction.commit();
+    }
 }
