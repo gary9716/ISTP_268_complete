@@ -74,7 +74,6 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                         // do something with the clicked item :D
                         //first item come with index 1
-                        Log.d("stackTest", "onItemClick:" + position);
                         attachFragment(fragments[position - 1]);
                         return false; //return false to bound back the drawer after clicking
                     }
