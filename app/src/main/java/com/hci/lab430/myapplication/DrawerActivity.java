@@ -6,6 +6,7 @@ import android.app.FragmentTransaction;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 
 import com.hci.lab430.myapplication.fragment.LogFragment;
@@ -31,7 +32,7 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
     private IProfile profile;
     private FragmentManager fragmentManager;
     private Fragment[] fragments;
-    private int backStackCount = 0;
+    private int prevBackStackCount = 0;
     private Fragment attachedFragment;
     private int defaultSelectedDrawerIndex = 0;
 
@@ -73,6 +74,7 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                         // do something with the clicked item :D
                         //first item come with index 1
+                        Log.d("stackTest", "onItemClick:" + position);
                         attachFragment(fragments[position - 1]);
                         return false; //return false to bound back the drawer after clicking
                     }
@@ -94,7 +96,8 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
         }
         transaction.commit();
 
-        naviDrawer.setSelectionAtPosition(defaultSelectedDrawerIndex + 1);
+        //don't fire the listener
+        naviDrawer.setSelectionAtPosition(defaultSelectedDrawerIndex + 1, false);
 
     }
 
@@ -130,6 +133,7 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
         else {
             super.onBackPressed();
         }
+
     }
 
     private void replaceWithTheFragment(Fragment fragment) {
@@ -141,8 +145,10 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
 
     private void attachFragment(Fragment fragment) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        if(attachedFragment != null)
+        if(attachedFragment != null) {
+            Log.d("testFragment", "detach");
             transaction.detach(attachedFragment);
+        }
         transaction.attach(fragment);
         transaction.addToBackStack(null); //let back button be able to reverse this commitment
         transaction.commit();
@@ -151,14 +157,16 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
 
     @Override
     public void onBackStackChanged() {
-        if(backStackCount - fragmentManager.getBackStackEntryCount() > 0) {
-            //only select item when number of back-stack count decrease
+        Log.d("stackTest", "stackCount:" + fragmentManager.getBackStackEntryCount());
+        int currentBackStackCount = fragmentManager.getBackStackEntryCount();
+        if(currentBackStackCount - prevBackStackCount < 0) { //if we're poping transection from stack
             for (int i = 0; i < fragments.length; i++) {
                 if (fragments[i].isVisible()) {
-                    naviDrawer.setSelectionAtPosition(i + 1);
+                    attachedFragment = fragments[i];
+                    naviDrawer.setSelectionAtPosition(i + 1, false);
                 }
             }
         }
-        backStackCount = fragmentManager.getBackStackEntryCount();
+        prevBackStackCount = currentBackStackCount;
     }
 }
