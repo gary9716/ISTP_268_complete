@@ -15,6 +15,7 @@ import com.hci.lab430.myapplication.R;
 public class TestFragment1 extends LogFragment {
 
     public final static String msgTextKey = TestFragment1.class.getName() + ".msg";
+    View fragmentView = null;
 
     public static TestFragment1 newInstance(String msg) {
         TestFragment1 fragment1 = new TestFragment1();
@@ -39,12 +40,14 @@ public class TestFragment1 extends LogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        // generate View object by
-        // inflating the layout that would be controlled by this fragment
-        View fragmentView = inflater.inflate(R.layout.fragment1_layout, container, false);
+        if(fragmentView == null) {
+            // generate View object by
+            // inflating the layout that would be controlled by this fragment
+            fragmentView = inflater.inflate(R.layout.fragment1_layout, container, false);
 
-        //bind view with data
-        ((TextView)fragmentView.findViewById(R.id.textView)).setText(mMessage);
+            //bind view with data
+            ((TextView) fragmentView.findViewById(R.id.textView)).setText(mMessage);
+        }
 
         return fragmentView;
     }

@@ -15,9 +15,11 @@ import com.hci.lab430.myapplication.fragment.TestFragment1;
  */
 public class FragmentTestActivity extends AppCompatActivity implements View.OnClickListener{
 
+    int mode = 2;
     int fragmentContainerId;
     FragmentManager fragmentManager;
     Fragment[] fragments;
+    Fragment visibleFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,23 +37,48 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
         ((LogFragment)fragments[0]).actualName = "F1";
         fragments[1] = TestFragment1.newInstance("Fragment 2 pre-allocated");
         ((LogFragment)fragments[1]).actualName = "F2";
+
+        if(mode == 2) {
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            for(int i = 0;i < fragments.length;i++) {
+                transaction.add(R.id.fragmentContainer,fragments[i]);
+                transaction.detach(fragments[i]);
+            }
+            transaction.commit();
+        }
+
     }
 
     @Override
     public void onBackPressed() {
-        fragmentManager.popBackStack();
+        if(fragmentManager.getBackStackEntryCount() != 0) { //is not empty
+            fragmentManager.popBackStack();
+        }
     }
 
     @Override
     public void onClick(View view) {
         int viewId = view.getId();
         if(viewId == R.id.fragment_1) {
-            replaceWithTheFragment(fragments[0]);
+            if(mode == 1) {
+                replaceWithTheFragment(fragments[0]);
+            }
+            else if(mode == 2) {
+                attachFragment(fragments[0]);
+            }
+
+            visibleFragment = fragments[0];
 
         }
         else if(viewId == R.id.fragment_2) {
-            replaceWithTheFragment(fragments[1]);
+            if(mode == 1) {
+                replaceWithTheFragment(fragments[1]);
+            }
+            else if(mode == 2) {
+                attachFragment(fragments[1]);
+            }
 
+            visibleFragment = fragments[1];
         }
         else if(viewId == R.id.fragment_2_remove) {
             removeTheFragment(fragments[1]);
@@ -60,9 +87,7 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
     }
 
     private void removeTheFragment(Fragment fragment) {
-        if(fragment.isAdded()) {
-            fragmentManager.beginTransaction().remove(fragment).commit();
-        }
+        fragmentManager.beginTransaction().remove(fragment).commit();
     }
 
     private void replaceWithTheFragment(Fragment fragment) {
@@ -70,6 +95,16 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
         transaction.replace(fragmentContainerId, fragment);
         transaction.addToBackStack(null); //let back button be able to reverse this commitment
         transaction.commit();
+    }
+
+    private void attachFragment(Fragment fragment) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        if(visibleFragment != null)
+            transaction.detach(visibleFragment);
+        transaction.attach(fragment);
+        transaction.addToBackStack(null); //let back button be able to reverse this commitment
+        transaction.commit();
+        visibleFragment = fragment;
     }
 
 }

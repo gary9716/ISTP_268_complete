@@ -32,7 +32,7 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/8/4.
  */
-public class PokemonListFragment extends Fragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.onPokemonInfoStateChangeListener{
+public class PokemonListFragment extends LogFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.onPokemonInfoStateChangeListener{
 
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
@@ -41,6 +41,7 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
     AlertDialog deleteActionDialog;
     Activity activity = getActivity();
     ArrayList<PokemonInfo> pokemonInfos;
+    View fragmentView;
 
     public static Fragment newInstance() {
         PokemonListFragment fragment = new PokemonListFragment();
@@ -61,20 +62,7 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
                 srcIntent.getIntExtra(MainActivity.selectedPokemonIndexKey, 0);
         PokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
         pokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
-
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        View rootView = inflater.inflate(R.layout.pokemon_list, container, false);
-
         adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view, pokemonInfos, this);
-        ListView pokemonListView = (ListView)rootView.findViewById(R.id.pokemonListView);
-        pokemonListView.setAdapter(adapter);
-        pokemonListView.setOnItemClickListener(this);
-        pokemonListView.setOnItemLongClickListener(this);
 
         deleteActionDialog = new AlertDialog.Builder(activity)
                 .setMessage("你確定要丟棄神奇寶貝們嗎？")
@@ -83,13 +71,28 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
                 .setPositiveButton("確認", this)
                 .setCancelable(false)
                 .create();
-
-        setHasOptionsMenu(false);
-
-        return rootView;
-
     }
 
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        super.onCreateView(inflater,container,savedInstanceState);
+        if(fragmentView == null) {
+
+            fragmentView = inflater.inflate(R.layout.pokemon_list, container, false);
+
+            ListView pokemonListView = (ListView) fragmentView.findViewById(R.id.pokemonListView);
+            pokemonListView.setAdapter(adapter);
+            pokemonListView.setOnItemClickListener(this);
+            pokemonListView.setOnItemLongClickListener(this);
+
+            setHasOptionsMenu(true);
+            setMenuVisibility(false);
+
+        }
+
+        return fragmentView;
+    }
 
     private final static int detailActRequestCode = 1;
     private boolean itemIsClickable = true;
@@ -126,7 +129,6 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
                 for(PokemonInfo pokemonInfo : adapter.selectedPokemons) {
                     adapter.remove(pokemonInfo);
                 }
-//                invalidateOptionsMenu();
             } else if (which == AlertDialog.BUTTON_NEGATIVE) {
                 Toast.makeText(activity, "取消丟棄", Toast.LENGTH_SHORT).show();
             }
@@ -209,10 +211,20 @@ public class PokemonListFragment extends Fragment implements AdapterView.OnItemC
     @Override
     public void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter) {
         if(adapter.selectedPokemons.size() == 0) {
-            setHasOptionsMenu(false);
+            setMenuVisibility(false);
         }
         else {
-            setHasOptionsMenu(true);
+            setMenuVisibility(true);
         }
     }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        //release some resource here
+        if(!isVisible()) {
+            fragmentView = null;
+        }
+    }
+
 }

@@ -18,7 +18,7 @@ import com.squareup.picasso.Picasso;
 public class TestFragment2 extends LogFragment {
 
     public final static String imgKey = TestFragment2.class.getName() + ".img";
-
+    View fragmentView = null;
 
     public static TestFragment2 newInstance(int imgResId) {
         TestFragment2 fragment2 = new TestFragment2();
@@ -46,8 +46,10 @@ public class TestFragment2 extends LogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        View fragmentView = inflater.inflate(R.layout.fragment2_layout, container, false);
-        mPicasso.load(mImgResId).into((ImageView) fragmentView.findViewById(R.id.imageView));
+        if(fragmentView == null) {
+            fragmentView = inflater.inflate(R.layout.fragment2_layout, container, false);
+            mPicasso.load(mImgResId).into((ImageView) fragmentView.findViewById(R.id.imageView));
+        }
 
         return fragmentView;
     }

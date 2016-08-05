@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.hci.lab430.myapplication.fragment.LogFragment;
 import com.hci.lab430.myapplication.fragment.PokemonListFragment;
 import com.hci.lab430.myapplication.fragment.TestFragment1;
 import com.hci.lab430.myapplication.model.Utils;
@@ -22,18 +23,33 @@ import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 /**
  * Created by lab430 on 16/8/2.
  */
-public class DrawerActivity extends CustomizedActivity {
+public class DrawerActivity extends CustomizedActivity implements FragmentManager.OnBackStackChangedListener{
 
     private Toolbar toolbar;
-    private Drawer result;
+    private Drawer naviDrawer;
     private AccountHeader headerResult = null;
     private IProfile profile;
     private FragmentManager fragmentManager;
     private Fragment[] fragments;
+    private int backStackCount = 0;
+    private Fragment attachedFragment;
+    private int defaultSelectedDrawerIndex = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drawer);
+
+        //prepare fragments
+        fragmentManager = getFragmentManager();
+        fragmentManager.addOnBackStackChangedListener(this);
+        fragments = new Fragment[3];
+        fragments[0] = PokemonListFragment.newInstance();
+        ((LogFragment)fragments[0]).actualName = "f0";
+        fragments[1] = TestFragment1.newInstance("fake 1");
+        ((LogFragment)fragments[1]).actualName = "f1";
+        fragments[2] = TestFragment1.newInstance("fake 2");
+        ((LogFragment)fragments[2]).actualName = "f2";
 
         // Set a Toolbar to replace the ActionBar.
         // so it would be laid below the drawer when the drawer comes out
@@ -47,7 +63,7 @@ public class DrawerActivity extends CustomizedActivity {
         buildDrawerHeader(false, savedInstanceState);
 
         //create the drawer
-        result = new DrawerBuilder()
+        naviDrawer = new DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(toolbar)
                 .withAccountHeader(headerResult)
@@ -57,22 +73,28 @@ public class DrawerActivity extends CustomizedActivity {
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                         // do something with the clicked item :D
                         //first item come with index 1
-                        replaceWithTheFragment(fragments[position - 1]);
+                        attachFragment(fragments[position - 1]);
                         return false; //return false to bound back the drawer after clicking
                     }
                 })
                 .withSavedInstance(savedInstanceState)
                 .build();
 
-        fragmentManager = getFragmentManager();
-        fragments = new Fragment[3];
-        fragments[0] = PokemonListFragment.newInstance();
-        fragments[1] = TestFragment1.newInstance("fake 1");
-        fragments[2] = TestFragment1.newInstance("fake 2");
 
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
         for(int i = fragments.length - 1;i >= 0;i--) {
-            replaceWithTheFragment(fragments[i]);
+            transaction.add(R.id.fragmentContainer, fragments[i]);
+            if(i != defaultSelectedDrawerIndex) {
+                transaction.detach(fragments[i]);
+            }
+            else {
+                attachedFragment = fragments[defaultSelectedDrawerIndex];
+            }
+            //don't add back stack here
         }
+        transaction.commit();
+
+        naviDrawer.setSelectionAtPosition(defaultSelectedDrawerIndex + 1);
 
     }
 
@@ -90,7 +112,7 @@ public class DrawerActivity extends CustomizedActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         //add the values which need to be saved from the drawer to the bundle
-        outState = result.saveInstanceState(outState);
+        outState = naviDrawer.saveInstanceState(outState);
         //add the values which need to be saved from the accountHeader to the bundle
         outState = headerResult.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
@@ -99,9 +121,13 @@ public class DrawerActivity extends CustomizedActivity {
     @Override
     public void onBackPressed() {
         //handle the back press :D close the drawer first and if the drawer is closed close the activity
-        if (result != null && result.isDrawerOpen()) {
-            result.closeDrawer();
-        } else {
+        if (naviDrawer != null && naviDrawer.isDrawerOpen()) {
+            naviDrawer.closeDrawer();
+        }
+        else if(fragmentManager.getBackStackEntryCount() != 0) { //only popstack if stack is not empty
+            fragmentManager.popBackStack();
+        }
+        else {
             super.onBackPressed();
         }
     }
@@ -111,5 +137,28 @@ public class DrawerActivity extends CustomizedActivity {
         transaction.replace(R.id.fragmentContainer, fragment);
         transaction.addToBackStack(null); //let back button be able to reverse this commitment
         transaction.commit();
+    }
+
+    private void attachFragment(Fragment fragment) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        if(attachedFragment != null)
+            transaction.detach(attachedFragment);
+        transaction.attach(fragment);
+        transaction.addToBackStack(null); //let back button be able to reverse this commitment
+        transaction.commit();
+        attachedFragment = fragment;
+    }
+
+    @Override
+    public void onBackStackChanged() {
+        if(backStackCount - fragmentManager.getBackStackEntryCount() > 0) {
+            //only select item when number of back-stack count decrease
+            for (int i = 0; i < fragments.length; i++) {
+                if (fragments[i].isVisible()) {
+                    naviDrawer.setSelectionAtPosition(i + 1);
+                }
+            }
+        }
+        backStackCount = fragmentManager.getBackStackEntryCount();
     }
 }

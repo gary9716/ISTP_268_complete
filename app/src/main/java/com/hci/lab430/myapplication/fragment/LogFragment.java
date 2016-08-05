@@ -56,9 +56,9 @@ public class LogFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        Log.d(debug_tag, actualName + " is in onViewCreated");
+    public void onDestroyView() {
+        Log.d(debug_tag, actualName + " is in onDestroyView");
+        super.onDestroyView();
     }
 
     @Override
