@@ -13,7 +13,7 @@ import com.hci.lab430.myapplication.fragment.TestFragment1;
 /**
  * Created by lab430 on 16/8/1.
  */
-public class FragmentTestActivity extends AppCompatActivity implements View.OnClickListener{
+public class FragmentTestActivity extends AppCompatActivity implements View.OnClickListener, FragmentManager.OnBackStackChangedListener{
 
     int mode = 2;
     int fragmentContainerId;
@@ -31,6 +31,7 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
         findViewById(R.id.fragment_2_remove).setOnClickListener(this);
 
         fragmentManager = getFragmentManager();
+        fragmentManager.addOnBackStackChangedListener(this);
 
         fragments = new Fragment[2];
         fragments[0] = TestFragment1.newInstance("Fragment 1 pre-allocated");
@@ -107,4 +108,12 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
         visibleFragment = fragment;
     }
 
+    @Override
+    public void onBackStackChanged() {
+        for(int i = 0;i < fragments.length;i++) {
+            if(fragments[i].isVisible()) {
+                visibleFragment = fragments[i];
+            }
+        }
+    }
 }
