@@ -1,10 +1,8 @@
 package com.hci.lab430.myapplication;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,7 +24,7 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/7/22.
  */
-public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.onPokemonInfoStateChangeListener {
+public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener {
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
     MediaPlayer mediaPlayer = null;
@@ -114,6 +112,11 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
                     }
                 }, 1000);
             }
+            else {
+                adapter.selectedPokemons.clear();
+                invalidateOptionsMenu();
+            }
+
             return true;
         }
         else if(itemId == R.id.action_settings) {

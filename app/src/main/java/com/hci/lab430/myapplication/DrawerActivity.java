@@ -9,9 +9,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
+import com.hci.lab430.myapplication.fragment.ItemFragment;
 import com.hci.lab430.myapplication.fragment.LogFragment;
 import com.hci.lab430.myapplication.fragment.PokemonListFragment;
 import com.hci.lab430.myapplication.fragment.TestFragment1;
+import com.hci.lab430.myapplication.model.ItemFragmentManager;
 import com.hci.lab430.myapplication.model.Utils;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -24,16 +26,14 @@ import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 /**
  * Created by lab430 on 16/8/2.
  */
-public class DrawerActivity extends CustomizedActivity implements FragmentManager.OnBackStackChangedListener{
+public class DrawerActivity extends CustomizedActivity implements ItemFragmentManager.OnBackStackChangedListener {
 
     private Toolbar toolbar;
     private Drawer naviDrawer;
     private AccountHeader headerResult = null;
     private IProfile profile;
-    private FragmentManager fragmentManager;
-    private Fragment[] fragments;
-    private int prevBackStackCount = 0;
-    private Fragment attachedFragment;
+    private ItemFragmentManager itemFragmentManager;
+    private ItemFragment[] fragments;
     private int defaultSelectedDrawerIndex = 0;
 
     @Override
@@ -42,15 +42,17 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
         setContentView(R.layout.activity_drawer);
 
         //prepare fragments
-        fragmentManager = getFragmentManager();
-        fragmentManager.addOnBackStackChangedListener(this);
-        fragments = new Fragment[3];
+
+        fragments = new ItemFragment[3];
         fragments[0] = PokemonListFragment.newInstance();
         ((LogFragment)fragments[0]).actualName = "f0";
         fragments[1] = TestFragment1.newInstance("fake 1");
         ((LogFragment)fragments[1]).actualName = "f1";
         fragments[2] = TestFragment1.newInstance("fake 2");
         ((LogFragment)fragments[2]).actualName = "f2";
+
+        itemFragmentManager = new ItemFragmentManager(this, R.id.fragmentContainer, fragments, defaultSelectedDrawerIndex);
+        itemFragmentManager.setOnBackStackChangedListener(this);
 
         // Set a Toolbar to replace the ActionBar.
         // so it would be laid below the drawer when the drawer comes out
@@ -74,26 +76,12 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
                         // do something with the clicked item :D
                         //first item come with index 1
-                        attachFragment(fragments[position - 1]);
+                        itemFragmentManager.attachFragment(fragments[position - 1], true);
                         return false; //return false to bound back the drawer after clicking
                     }
                 })
                 .withSavedInstance(savedInstanceState)
                 .build();
-
-
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        for(int i = fragments.length - 1;i >= 0;i--) {
-            transaction.add(R.id.fragmentContainer, fragments[i]);
-            if(i != defaultSelectedDrawerIndex) {
-                transaction.detach(fragments[i]);
-            }
-            else {
-                attachedFragment = fragments[defaultSelectedDrawerIndex];
-            }
-            //don't add back stack here
-        }
-        transaction.commit();
 
         //don't fire the listener
         naviDrawer.setSelectionAtPosition(defaultSelectedDrawerIndex + 1, false);
@@ -126,8 +114,8 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
         if (naviDrawer != null && naviDrawer.isDrawerOpen()) {
             naviDrawer.closeDrawer();
         }
-        else if(fragmentManager.getBackStackEntryCount() != 0) { //only popstack if stack is not empty
-            fragmentManager.popBackStack();
+        else if(itemFragmentManager.mFragmentManager.getBackStackEntryCount() != 0) { //only popstack if stack is not empty
+            itemFragmentManager.mFragmentManager.popBackStack();
         }
         else {
             super.onBackPressed();
@@ -135,37 +123,13 @@ public class DrawerActivity extends CustomizedActivity implements FragmentManage
 
     }
 
-    private void replaceWithTheFragment(Fragment fragment) {
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.fragmentContainer, fragment);
-        transaction.addToBackStack(null); //let back button be able to reverse this commitment
-        transaction.commit();
-    }
-
-    private void attachFragment(Fragment fragment) {
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        if(attachedFragment != null) {
-            Log.d("testFragment", "detach");
-            transaction.detach(attachedFragment);
-        }
-        transaction.attach(fragment);
-        transaction.addToBackStack(null); //let back button be able to reverse this commitment
-        transaction.commit();
-        attachedFragment = fragment;
+    @Override
+    public void onPushIntoBackStack() {
+        //do nothing
     }
 
     @Override
-    public void onBackStackChanged() {
-        Log.d("stackTest", "stackCount:" + fragmentManager.getBackStackEntryCount());
-        int currentBackStackCount = fragmentManager.getBackStackEntryCount();
-        if(currentBackStackCount - prevBackStackCount < 0) { //if we're poping transection from stack
-            for (int i = 0; i < fragments.length; i++) {
-                if (fragments[i].isVisible()) {
-                    attachedFragment = fragments[i];
-                    naviDrawer.setSelectionAtPosition(i + 1, false);
-                }
-            }
-        }
-        prevBackStackCount = currentBackStackCount;
+    public void onPopOutBackStack() {
+        naviDrawer.setSelectionAtPosition(itemFragmentManager.mVisibleFragment.itemIndex + 1, false);
     }
 }

@@ -12,7 +12,7 @@ import com.hci.lab430.myapplication.R;
 /**
  * Created by lab430 on 16/8/1.
  */
-public class TestFragment1 extends LogFragment {
+public class TestFragment1 extends ItemFragment {
 
     public final static String msgTextKey = TestFragment1.class.getName() + ".msg";
     View fragmentView = null;

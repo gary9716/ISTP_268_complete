@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -22,7 +23,6 @@ public class PokemonDetailActivity extends CustomizedActivity {
     public final static int updateData = 1;
     public final static int removeFromList = 2;
 
-    int resultCode;
     PokemonInfo mData;
     String packageName;
     Resources mRes;
@@ -97,6 +97,8 @@ public class PokemonDetailActivity extends CustomizedActivity {
             }
         }
         HPProgressBar.setProgress((int)(((float) mData.getCurrentHP() / mData.getMaxHP()) * 100));
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
 
@@ -112,12 +114,16 @@ public class PokemonDetailActivity extends CustomizedActivity {
         if(itemId == R.id.action_save) {
             returnIntent.putExtra(PokemonInfo.nameKey, mData.getName());
             setResult(removeFromList, returnIntent);
-            finish();
+            onBackPressed();
             return true;
         }
         else if(itemId == R.id.action_level_up){
             //implement some logic here
 
+            return true;
+        }
+        else if(itemId == android.R.id.home) {
+            onBackPressed();
             return true;
         }
 

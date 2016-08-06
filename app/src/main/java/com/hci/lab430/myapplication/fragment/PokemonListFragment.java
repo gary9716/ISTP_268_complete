@@ -2,7 +2,6 @@ package com.hci.lab430.myapplication.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -32,7 +31,7 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/8/4.
  */
-public class PokemonListFragment extends LogFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.onPokemonInfoStateChangeListener{
+public class PokemonListFragment extends ItemFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener {
 
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
@@ -43,7 +42,7 @@ public class PokemonListFragment extends LogFragment implements AdapterView.OnIt
     ArrayList<PokemonInfo> pokemonInfos;
     View fragmentView;
 
-    public static Fragment newInstance() {
+    public static PokemonListFragment newInstance() {
         PokemonListFragment fragment = new PokemonListFragment();
         return fragment;
     }
@@ -195,9 +194,13 @@ public class PokemonListFragment extends LogFragment implements AdapterView.OnIt
                         }
                         adapter.notifyDataSetChanged();
                         adapter.selectedPokemons.clear();
-                        setHasOptionsMenu(false);
+                        setMenuVisibility(false);
                     }
                 }, 1000);
+            }
+            else {
+                adapter.selectedPokemons.clear();
+                setMenuVisibility(false);
             }
             return true;
         }

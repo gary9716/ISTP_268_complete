@@ -84,4 +84,5 @@ public class LogFragment extends Fragment {
         super.onStart();
         Log.d(debug_tag, actualName + " is in onStart");
     }
+
 }
