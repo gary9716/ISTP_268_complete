@@ -14,7 +14,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.hci.lab430.myapplication.R;
-import com.hci.lab430.myapplication.model.PokemonInfo;
+import com.hci.lab430.myapplication.model.OwningPokemonInfo;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.parse.ParseFile;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -22,17 +24,17 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/7/16.
  */
-public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
+public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> {
 
     int mRow_layout_id;
     LayoutInflater mInflater;
     Picasso mPicasso;
-    public ArrayList<PokemonInfo> selectedPokemons;
+    public ArrayList<OwningPokemonInfo> selectedPokemons;
     OnPokemonInfoStateChangeListener stateChangeListener = null;
 
     public PokemonInfoListViewAdapter(Context context,
                                       int resource,
-                                      ArrayList<PokemonInfo> objects) {
+                                      ArrayList<OwningPokemonInfo> objects) {
         super(context, resource, objects);
         mRow_layout_id = resource;
         mInflater = LayoutInflater.from(context);
@@ -43,7 +45,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
 
     public PokemonInfoListViewAdapter(Context context,
                                       int resource,
-                                      ArrayList<PokemonInfo> objects,
+                                      ArrayList<OwningPokemonInfo> objects,
                                       OnPokemonInfoStateChangeListener listener) {
         this(context, resource, objects);
         stateChangeListener = listener;
@@ -54,7 +56,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        PokemonInfo dataItem = getItem(position);
+        OwningPokemonInfo dataItem = getItem(position);
         ViewHolder viewHolder = null;
         if(convertView == null) { //create a new one if it hasn't been initiated yet.
             convertView = mInflater.inflate(mRow_layout_id, parent, false);
@@ -74,16 +76,16 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter);
     }
 
-    void onPokemonSelectedChange(PokemonInfo pokemonInfo) {
+    void onPokemonSelectedChange(OwningPokemonInfo owningPokemonInfo) {
         if(stateChangeListener != null) {
             stateChangeListener.onPokemonInfoSelectedChange(this);
         }
 
-        if(pokemonInfo.isSelected) {
-            selectedPokemons.add(pokemonInfo);
+        if(owningPokemonInfo.isSelected) {
+            selectedPokemons.add(owningPokemonInfo);
         }
         else {
-            selectedPokemons.remove(pokemonInfo);
+            selectedPokemons.remove(owningPokemonInfo);
         }
 
         if(stateChangeListener != null) {
@@ -91,26 +93,20 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         }
     }
 
-    @Override
-    public void remove(PokemonInfo object) {
-        selectedPokemons.remove(object);
-        super.remove(object);
-    }
-
-    public PokemonInfo getItemWithName(String name) {
+    public OwningPokemonInfo getItemWithName(String name) {
 
         for(int i = 0;i < getCount();i++) {
-            PokemonInfo pokemonInfo = getItem(i);
-            if(name.equals(pokemonInfo.getName())) {
-                return pokemonInfo;
+            OwningPokemonInfo owningPokemonInfo = getItem(i);
+            if(name.equals(owningPokemonInfo.getName())) {
+                return owningPokemonInfo;
             }
         }
 
         return null;
     }
 
-    public void update(PokemonInfo newData) {
-        PokemonInfo oldData = getItemWithName(newData.getName());
+    public void update(OwningPokemonInfo newData) {
+        OwningPokemonInfo oldData = getItemWithName(newData.getName());
         oldData.setSkill(newData.getSkill());
         oldData.setCurrentHP(newData.getCurrentHP());
         oldData.setMaxHP(newData.getMaxHP());
@@ -135,7 +131,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         private ProgressBar mHPBar = null;
 
         private Picasso mPicasso;
-        private PokemonInfo mPokemonInfo = null;
+        private OwningPokemonInfo mOwningPokemonInfo = null;
         private PokemonInfoListViewAdapter mAdapter;
 
         public ViewHolder(View row_view, Picasso picasso, PokemonInfoListViewAdapter adapter) {
@@ -150,9 +146,9 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
             mAdapter = adapter;
         }
 
-        public void setView(PokemonInfo data) {
-            mPokemonInfo = data;
-
+        public void setView(OwningPokemonInfo data) {
+            mOwningPokemonInfo = data;
+            ImageLoader.getInstance().displayImage(data.getListImgUrl(), mAppearanceImg);
             mRowView.setActivated(data.isSelected);
             mPicasso.load(data.getListImgId()).into(mAppearanceImg);
             mAppearanceImg.setOnClickListener(this);
@@ -171,9 +167,9 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         }
 
         public void setSelected() {
-            mPokemonInfo.isSelected = !mPokemonInfo.isSelected;
-            mRowView.setActivated(mPokemonInfo.isSelected);
-            mAdapter.onPokemonSelectedChange(mPokemonInfo);
+            mOwningPokemonInfo.isSelected = !mOwningPokemonInfo.isSelected;
+            mRowView.setActivated(mOwningPokemonInfo.isSelected);
+            mAdapter.onPokemonSelectedChange(mOwningPokemonInfo);
         }
 
         @Override
@@ -187,16 +183,16 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
         private void animateHPBarAndCurrentHP() {
             //play animation
             //it would be asynchronous operation so we need to get a reference
-            final PokemonInfo pokemonInfo = mPokemonInfo;
+            final OwningPokemonInfo owningPokemonInfo = mOwningPokemonInfo;
             int animationDuration = 1500;
             final ObjectAnimator hpBarAnimator = ObjectAnimator.ofInt(mHPBar, "progress", mHPBar.getProgress(), 100);
             hpBarAnimator.setDuration(animationDuration);
 
             final ValueAnimator hpTextAnimator = new ValueAnimator();
-            hpTextAnimator.setObjectValues(pokemonInfo.getCurrentHP(), pokemonInfo.getMaxHP());// here you set the range, from 0 to "count" value
+            hpTextAnimator.setObjectValues(owningPokemonInfo.getCurrentHP(), owningPokemonInfo.getMaxHP());// here you set the range, from 0 to "count" value
             hpTextAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    if(!mPokemonInfo.getName().equals(pokemonInfo.getName())) {
+                    if(!mOwningPokemonInfo.getName().equals(owningPokemonInfo.getName())) {
                         hpBarAnimator.cancel();
                         hpTextAnimator.cancel();
                     }
@@ -213,8 +209,8 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
 
                 @Override
                 public void onAnimationEnd(Animator animator) {
-                    pokemonInfo.isHealing = false;
-                    pokemonInfo.setCurrentHP(pokemonInfo.getMaxHP());
+                    owningPokemonInfo.isHealing = false;
+                    owningPokemonInfo.setCurrentHP(owningPokemonInfo.getMaxHP());
                 }
 
                 @Override
@@ -227,7 +223,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<PokemonInfo> {
 
                 }
             });
-            
+
             hpTextAnimator.start();
             hpBarAnimator.start();
         }

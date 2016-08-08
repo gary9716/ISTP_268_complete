@@ -1,8 +1,10 @@
 package com.hci.lab430.myapplication;
 
+import android.app.Application;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -59,9 +61,20 @@ public class DrawerActivity extends CustomizedActivity implements ItemFragmentMa
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Drawable profileIcon = null;
-        profileIcon = Utils.getDrawable(this, R.drawable.profile3);
-        profile = new ProfileDrawerItem().withName("Batman").withEmail("batman@gmail.com").withIcon(profileIcon);
+
+        SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
+        String profileName = preferences.getString(MainActivity.nameTextKey, "Batman");
+        String email = preferences.getString(MainActivity.emailKey, "batman@gmail.com");
+        String imgUrl = preferences.getString(MainActivity.profileImgKey, null);
+        if(imgUrl == null) {
+            Drawable profileIcon = null;
+            profileIcon = Utils.getDrawable(this, R.drawable.profile3);
+            profile = new ProfileDrawerItem().withName(profileName).withEmail(email).withIcon(profileIcon);
+        }
+        else {
+            Log.d("testFBUrl",imgUrl);
+            profile = new ProfileDrawerItem().withName(profileName).withEmail(email).withIcon(imgUrl);
+        }
 
         buildDrawerHeader(false, savedInstanceState);
 

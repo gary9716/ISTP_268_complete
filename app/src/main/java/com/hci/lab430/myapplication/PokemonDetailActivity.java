@@ -4,14 +4,13 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.hci.lab430.myapplication.model.PokemonInfo;
+import com.hci.lab430.myapplication.model.OwningPokemonInfo;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -23,7 +22,7 @@ public class PokemonDetailActivity extends CustomizedActivity {
     public final static int updateData = 1;
     public final static int removeFromList = 2;
 
-    PokemonInfo mData;
+    OwningPokemonInfo mData;
     String packageName;
     Resources mRes;
     Picasso mPicasso;
@@ -37,13 +36,13 @@ public class PokemonDetailActivity extends CustomizedActivity {
     TextView maxHPText;
     TextView type1Text;
     TextView type2Text;
-    TextView[] skillsText = new TextView[PokemonInfo.maxNumSkills];
+    TextView[] skillsText = new TextView[OwningPokemonInfo.maxNumSkills];
     ProgressBar HPProgressBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mData = getIntent().getParcelableExtra(PokemonInfo.parcelKey);
+        mData = getIntent().getParcelableExtra(OwningPokemonInfo.parcelKey);
         mRes = getResources();
         packageName = getPackageName();
         mPicasso = Picasso.with(this);
@@ -63,7 +62,7 @@ public class PokemonDetailActivity extends CustomizedActivity {
         type1Text = (TextView)findViewById(R.id.type_1_text);
         type2Text = (TextView)findViewById(R.id.type_2_text);
 
-        for(int i = 0;i < PokemonInfo.maxNumSkills;i++) {
+        for(int i = 0;i < OwningPokemonInfo.maxNumSkills;i++) {
             int skillTextId = mRes.getIdentifier(String.format("skill_%d_text",i + 1), "id", packageName);
             skillsText[i] = (TextView) findViewById(skillTextId);
         }
@@ -76,14 +75,14 @@ public class PokemonDetailActivity extends CustomizedActivity {
         currentHPText.setText(String.valueOf(mData.getCurrentHP()));
         maxHPText.setText(String.valueOf(mData.getMaxHP()));
         if(mData.getType_1() != -1) {
-            type1Text.setText(PokemonInfo.typeNames[mData.getType_1()]);
+            type1Text.setText(OwningPokemonInfo.typeNames[mData.getType_1()]);
         }
         else {
             type1Text.setText("");
         }
 
         if(mData.getType_2() != -1) {
-            type2Text.setText(PokemonInfo.typeNames[mData.getType_2()]);
+            type2Text.setText(OwningPokemonInfo.typeNames[mData.getType_2()]);
         }
         else {
             type2Text.setText("");
@@ -112,7 +111,7 @@ public class PokemonDetailActivity extends CustomizedActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if(itemId == R.id.action_save) {
-            returnIntent.putExtra(PokemonInfo.nameKey, mData.getName());
+            returnIntent.putExtra(OwningPokemonInfo.nameKey, mData.getName());
             setResult(removeFromList, returnIntent);
             onBackPressed();
             return true;

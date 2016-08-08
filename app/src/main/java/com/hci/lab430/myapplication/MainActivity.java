@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -19,17 +18,34 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import fr.castorflex.android.circularprogressbar.CircularProgressBar;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
+
+import org.json.JSONObject;
+
 import fr.castorflex.android.circularprogressbar.CircularProgressDrawable;
 
 public class MainActivity extends CustomizedActivity implements View.OnClickListener,RadioGroup.OnCheckedChangeListener,EditText.OnEditorActionListener{
 
     public final static String selectedPokemonIndexKey = "selectedPokemonIndex";
 
+    public static final String optionSelectedKey = "optionSelectedKey";
+    public static final String nameTextKey = "nameTextKey";
+    public static final String profileImgKey = "profileImgKey";
+    public static final String emailKey = "emailKey";
+
     TextView infoText;
-    EditText nameEditText;
+//    EditText nameEditText;
     RadioGroup optionGroup;
     Button confirmBtn;
+    LoginButton loginBtn;
+
     int selectedOptionIndex = 0;
     String nameOfTheTrainer = null;
     int changeActivityInSecs = 5;
@@ -42,17 +58,84 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
             "妙蛙種子"
     };
 
-    Handler uiHandler;
-    SharedPreferences preferences;
-    public final String optionSelectedKey = "optionSelectedKey";
-    public final String nameEditTextKey = "nameTextKey";
-
     public enum UISetting {
         Initial,
         DataIsKnown
     }
 
+    Handler uiHandler;
+    SharedPreferences preferences;
     UISetting uiSetting;
+
+    CallbackManager callbackManager;
+    AccessToken accessToken;
+
+    public void setupFBLogin() {
+        callbackManager = CallbackManager.Factory.create();
+
+        loginBtn.setReadPermissions("public_profile", "email");
+        loginBtn.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                accessToken = loginResult.getAccessToken();
+                sendGraphReq();
+            }
+
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+
+            }
+        });
+    }
+
+    public void sendGraphReq() {
+        if(accessToken != null) {
+            GraphRequest request = GraphRequest.newMeRequest(
+                    accessToken,
+                    new GraphRequest.GraphJSONObjectCallback() {
+
+                        //當RESPONSE回來的時候
+
+                        @Override
+                        public void onCompleted(JSONObject object, GraphResponse response) {
+
+                            //讀出姓名 ID FB個人頁面連結
+                            if (response != null) {
+                                SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
+                                SharedPreferences.Editor editor = preferences.edit();
+                                nameOfTheTrainer = object.optString("name");
+                                editor.putString(nameTextKey, nameOfTheTrainer);
+                                editor.putString(emailKey, object.optString("email"));
+
+//                                Log.d("FB", object.optString("name"));
+//                                Log.d("FB", object.optString("email"));
+//                                Log.d("FB", object.optString("id"));
+
+                                if (object.has("picture")) {
+                                    try {
+                                        String profilePicUrl = object.getJSONObject("picture").getJSONObject("data").getString("url");
+                                        editor.putString(profileImgKey, profilePicUrl);
+                                    } catch (Exception e) {
+                                        Log.d("FB", e.getLocalizedMessage());
+                                    }
+                                }
+
+                                editor.commit();
+                            }
+                        }
+                    });
+
+            Bundle parameters = new Bundle();
+            parameters.putString("fields", "id,name,email,picture.type(large)");
+            request.setParameters(parameters);
+            request.executeAsync();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,16 +143,38 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         Log.d("testStage", "onCreate");
         uiHandler = new Handler(getMainLooper());
 
-        setContentView(R.layout.pokemon_welcome);
+        setContentView(R.layout.pokemon_welcome_fb_login);
 
         infoText = (TextView)findViewById(R.id.info_text);
 
-        nameEditText = (EditText)findViewById(R.id.name_editText);
-        nameEditText.setOnEditorActionListener(this);
-        nameEditText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+//        nameEditText = (EditText)findViewById(R.id.name_editText);
+//        nameEditText.setOnEditorActionListener(this);
+//        nameEditText.setImeOptions(EditorInfo.IME_ACTION_DONE);
 
         confirmBtn = (Button)findViewById(R.id.confirm_btn);
         confirmBtn.setOnClickListener(this);
+
+        AccessToken currentToken;
+        currentToken = AccessToken.getCurrentAccessToken();
+        if(currentToken != null) {
+            Log.d("accessToken", currentToken.getToken());
+            accessToken = currentToken;
+        }
+        else {
+            Log.d("accessToken", "no token now");
+            SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.remove(nameTextKey);
+            editor.remove(profileImgKey);
+            editor.remove(emailKey);
+            editor.commit();
+
+            accessToken = null;
+        }
+
+        loginBtn = (LoginButton)findViewById(R.id.login_button);
+        setupFBLogin();
+        sendGraphReq();
 
         optionGroup = (RadioGroup) findViewById(R.id.option_radioGrp);
         optionGroup.setOnCheckedChangeListener(this);
@@ -87,7 +192,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
 
         selectedOptionIndex = preferences.getInt(optionSelectedKey, selectedOptionIndex);
         //initial value of nameOfTheTrainer is null
-        nameOfTheTrainer = preferences.getString(nameEditTextKey, nameOfTheTrainer);
+        nameOfTheTrainer = preferences.getString(nameTextKey, nameOfTheTrainer);
         if(nameOfTheTrainer == null) {
             uiSetting = UISetting.Initial;
         }
@@ -103,9 +208,10 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
     private void changeUIAccordingToRecord() {
         if(uiSetting == UISetting.DataIsKnown) {
             //hide these UI
-            nameEditText.setVisibility(View.INVISIBLE);
+//            nameEditText.setVisibility(View.INVISIBLE);
             confirmBtn.setVisibility(View.INVISIBLE);
             optionGroup.setVisibility(View.INVISIBLE);
+            loginBtn.setVisibility(View.INVISIBLE);
             //show progress bar
             progressBar.setVisibility(View.VISIBLE);
             //although button is invisible, we can still simulate the button clicked.
@@ -113,9 +219,10 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         }
         else {
             //show these UI
-            nameEditText.setVisibility(View.VISIBLE);
+//            nameEditText.setVisibility(View.VISIBLE);
             confirmBtn.setVisibility(View.VISIBLE);
             optionGroup.setVisibility(View.VISIBLE);
+            loginBtn.setVisibility(View.VISIBLE);
             //hide progress bar
             progressBar.setVisibility(View.INVISIBLE);
         }
@@ -136,9 +243,6 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         super.onSaveInstanceState(outState);
         Log.d("testStage","onSaveInstance");
         outState.putInt(optionSelectedKey, selectedOptionIndex);
-        String nameStr = nameEditText.getText().toString();
-        if(!nameStr.isEmpty())
-            outState.putString(nameEditTextKey, nameEditText.getText().toString());
 
     }
 
@@ -148,10 +252,6 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         Log.d("testStage","onRestoreInstance");
         selectedOptionIndex = savedInstanceState.getInt(optionSelectedKey, selectedOptionIndex);
         ((RadioButton)optionGroup.getChildAt(selectedOptionIndex)).setChecked(true);
-        String nameStr = savedInstanceState.getString(nameEditTextKey, null);
-        if(nameStr != null) {
-            nameEditText.setText(nameStr);
-        }
 
     }
 
@@ -160,16 +260,13 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         int viewId = view.getId();
         if(viewId == R.id.confirm_btn) {
             view.setClickable(false);
-            if(uiSetting == UISetting.Initial) {
-                //get the name from editText and save the data into SharePreference
-                nameOfTheTrainer = nameEditText.getText().toString();
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putString(nameEditTextKey, nameOfTheTrainer);
-                editor.putInt(optionSelectedKey, selectedOptionIndex);
-                editor.commit();
-            }
+
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt(optionSelectedKey, selectedOptionIndex);
+            editor.commit();
 
             setInfoTextWithFormat();
+
             uiHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -180,6 +277,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
                     MainActivity.this.finish();
                 }
             }, changeActivityInSecs * 1000);
+
         }
     }
 
@@ -223,6 +321,11 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
     protected void onStop() {
         confirmBtn.setClickable(true);
         super.onStop();
@@ -232,5 +335,11 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
     protected void onDestroy() {
         super.onDestroy();
         Log.d("testStage", "onDestroy");
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }

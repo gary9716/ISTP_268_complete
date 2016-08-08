@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="請輸入你的個人資訊"
+            android:text="請登入你的FB"
             android:id="@+id/info_text"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
@@ -29,28 +29,14 @@
             android:layout_marginRight="20dp"
             android:gravity="center_horizontal" />
 
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:ems="10"
-            android:id="@+id/name_editText"
-            android:layout_below="@+id/info_text"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="15dp"
-            android:hint="請輸入你的名字"
-            android:layout_alignParentStart="false"
-            android:layout_alignParentLeft="false"
-            android:visibility="visible" />
-
         <RadioGroup
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/name_editText"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="20dp"
             android:id="@+id/option_radioGrp"
-            android:visibility="visible">
+            android:visibility="visible"
+            android:layout_below="@+id/info_text">
 
             <RadioButton
                 android:layout_width="wrap_content"
@@ -72,7 +58,7 @@
                 android:id="@+id/option3" />
         </RadioGroup>
 
-        <com.facebook.login.widget.DeviceLoginButton
+        <com.facebook.login.widget.LoginButton
             android:id="@+id/login_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

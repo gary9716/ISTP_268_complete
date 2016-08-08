@@ -2,9 +2,13 @@ package com.hci.lab430.myapplication.model;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Build;
+
+import java.io.ByteArrayOutputStream;
 
 /**
  * Created by lab430 on 16/8/3.
@@ -41,6 +45,14 @@ public class Utils {
         }
 
         return mediaPlayer;
+    }
+
+    public static byte[] drawableToBytes(Drawable d, Bitmap.CompressFormat format) {
+        Bitmap bitmap = ((BitmapDrawable)d).getBitmap();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(format, 100, stream);
+        byte[] bitmapdata = stream.toByteArray();
+        return bitmapdata;
     }
 
 }

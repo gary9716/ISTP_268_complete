@@ -12,8 +12,7 @@
         android:icon="@drawable/pokemon_center"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/action_settings"
-        android:title="設定"
-        android:icon="@android:drawable/ic_dialog_info"
+        android:id="@+id/action_level_up"
+        android:title="升級"
         app:showAsAction="never" />
 </menu>
