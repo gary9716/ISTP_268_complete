@@ -16,10 +16,7 @@
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+
         </activity>
         <activity android:name=".PokemonListActivity"
             android:screenOrientation="portrait">
@@ -33,7 +30,10 @@
         </activity>
         <activity android:name=".DrawerActivity"
             android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar">
-
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity android:name="com.facebook.FacebookActivity"

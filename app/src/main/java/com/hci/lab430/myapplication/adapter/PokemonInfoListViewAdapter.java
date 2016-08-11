@@ -148,7 +148,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
 
         public void setView(OwningPokemonInfo data) {
             mOwningPokemonInfo = data;
-            ImageLoader.getInstance().displayImage(data.getListImgUrl(), mAppearanceImg);
+//            ImageLoader.getInstance().displayImage(data.getListImgUrl(), mAppearanceImg);
             mRowView.setActivated(data.isSelected);
             mPicasso.load(data.getListImgId()).into(mAppearanceImg);
             mAppearanceImg.setOnClickListener(this);

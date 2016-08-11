@@ -37,14 +37,13 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
 
     public static final String optionSelectedKey = "optionSelectedKey";
     public static final String nameTextKey = "nameTextKey";
-    public static final String profileImgKey = "profileImgKey";
+    public static final String profileImgUrlKey = "profileImgUrlKey";
     public static final String emailKey = "emailKey";
 
     TextView infoText;
 //    EditText nameEditText;
     RadioGroup optionGroup;
     Button confirmBtn;
-    LoginButton loginBtn;
 
     int selectedOptionIndex = 0;
     String nameOfTheTrainer = null;
@@ -66,6 +65,8 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
     Handler uiHandler;
     SharedPreferences preferences;
     UISetting uiSetting;
+
+    LoginButton loginBtn;
 
     CallbackManager callbackManager;
     AccessToken accessToken;
@@ -119,7 +120,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
                                 if (object.has("picture")) {
                                     try {
                                         String profilePicUrl = object.getJSONObject("picture").getJSONObject("data").getString("url");
-                                        editor.putString(profileImgKey, profilePicUrl);
+                                        editor.putString(profileImgUrlKey, profilePicUrl);
                                     } catch (Exception e) {
                                         Log.d("FB", e.getLocalizedMessage());
                                     }
@@ -165,7 +166,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
             SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
             editor.remove(nameTextKey);
-            editor.remove(profileImgKey);
+            editor.remove(profileImgUrlKey);
             editor.remove(emailKey);
             editor.commit();
 

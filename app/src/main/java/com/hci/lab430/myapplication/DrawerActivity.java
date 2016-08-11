@@ -1,9 +1,6 @@
 package com.hci.lab430.myapplication;
 
 import android.app.Application;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -14,6 +11,7 @@ import android.view.View;
 import com.hci.lab430.myapplication.fragment.ItemFragment;
 import com.hci.lab430.myapplication.fragment.LogFragment;
 import com.hci.lab430.myapplication.fragment.PokemonListFragment;
+import com.hci.lab430.myapplication.fragment.PokemonSearchFragment;
 import com.hci.lab430.myapplication.fragment.TestFragment1;
 import com.hci.lab430.myapplication.model.ItemFragmentManager;
 import com.hci.lab430.myapplication.model.Utils;
@@ -48,8 +46,8 @@ public class DrawerActivity extends CustomizedActivity implements ItemFragmentMa
         fragments = new ItemFragment[3];
         fragments[0] = PokemonListFragment.newInstance();
         ((LogFragment)fragments[0]).actualName = "f0";
-        fragments[1] = TestFragment1.newInstance("fake 1");
-        ((LogFragment)fragments[1]).actualName = "f1";
+        fragments[1] = PokemonSearchFragment.newInstance();
+        ((LogFragment) fragments[1]).actualName = "f1";
         fragments[2] = TestFragment1.newInstance("fake 2");
         ((LogFragment)fragments[2]).actualName = "f2";
 
@@ -65,7 +63,7 @@ public class DrawerActivity extends CustomizedActivity implements ItemFragmentMa
         SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
         String profileName = preferences.getString(MainActivity.nameTextKey, "Batman");
         String email = preferences.getString(MainActivity.emailKey, "batman@gmail.com");
-        String imgUrl = preferences.getString(MainActivity.profileImgKey, null);
+        String imgUrl = preferences.getString(MainActivity.profileImgUrlKey, null);
         if(imgUrl == null) {
             Drawable profileIcon = null;
             profileIcon = Utils.getDrawable(this, R.drawable.profile3);

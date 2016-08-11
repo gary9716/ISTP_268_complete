@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Created by lab430 on 16/8/4.
  */
-public class PokemonListFragment extends ItemFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener {
+public class PokemonListFragment extends ItemFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener, FindCallback<OwningPokemonInfo> {
 
     PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
@@ -85,29 +85,14 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
 
         if(!recordIsInDB) {
             loadFromCSV();
-            OwningPokemonInfo.syncToLocalDB(owningPokemonInfos);
+            OwningPokemonInfo.initTable(owningPokemonInfos);
             preferences.edit().putBoolean(recordIsInDBKey, true).commit();
         }
         else {
             ParseQuery<OwningPokemonInfo> query = OwningPokemonInfo.getQuery();
-            query.fromPin(OwningPokemonInfo.localDBTableName);
-            query.findInBackground(new FindCallback<OwningPokemonInfo>() {
-                @Override
-                public void done(List<OwningPokemonInfo> objects, ParseException e) {
-                    if(e == null) {
-                        for(OwningPokemonInfo owningPokemonInfo : objects) {
-                            owningPokemonInfos.add(owningPokemonInfo);
-                        }
-                        Log.d(OwningPokemonInfo.debug_tag, "finishing loading from local DB");
-                    }
-                    else {
-                        Log.d(OwningPokemonInfo.debug_tag, "fail to load from local DB");
-                    }
-
-                    if(adapter != null)
-                        adapter.notifyDataSetChanged();
-                }
-            });
+            query.fromPin(OwningPokemonInfo.localDBTableName).findInBackground(this); //query from local
+            query = OwningPokemonInfo.getQuery();
+            query.findInBackground(this); //query from remote
         }
 
     }
@@ -172,7 +157,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     @Override
     public void onStop() {
         itemIsClickable = true;
-        OwningPokemonInfo.syncToLocalDB(owningPokemonInfos);
+        OwningPokemonInfo.syncToDB(owningPokemonInfos);
         super.onStop();
     }
 
@@ -181,7 +166,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         if(dialogInterface.equals(deleteActionDialog)) {
             if (which == AlertDialog.BUTTON_POSITIVE) {
                 for(OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                    adapter.remove(owningPokemonInfo);
+                    removePokemonInfo(owningPokemonInfo);
                 }
                 adapter.selectedPokemons.clear();
             } else if (which == AlertDialog.BUTTON_NEGATIVE) {
@@ -199,8 +184,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
                 if(nameToRemove != null) {
                     OwningPokemonInfo owningPokemonInfo = adapter.getItemWithName(nameToRemove);
                     if(owningPokemonInfo != null) {
-                        adapter.remove(owningPokemonInfo);
-                        adapter.selectedPokemons.remove(owningPokemonInfo);
+                        removePokemonInfo(owningPokemonInfo);
+                        adapter.selectedPokemons.remove(owningPokemonInfo); //in case it was selected
                         Toast.makeText(activity, String.format("%s已經被存入電腦中", owningPokemonInfo.getName()),Toast.LENGTH_LONG).show();
                     }
                 }
@@ -278,18 +263,15 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
 
             return true;
         }
-
+        else if(itemId == R.id.action_sync) {
+            OwningPokemonInfo.syncToDB(owningPokemonInfos);
+        }
         return false;
     }
 
     @Override
     public void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter) {
-//        if(adapter.selectedPokemons.size() == 0) {
-//            setMenuVisibility(false);
-//        }
-//        else {
-//            setMenuVisibility(true);
-//        }
+        getActivity().invalidateOptionsMenu();
     }
 
     @Override
@@ -301,4 +283,28 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         }
     }
 
+    public void removePokemonInfo(OwningPokemonInfo pokemonInfo) {
+
+        adapter.remove(pokemonInfo);
+        //and remove from database
+        pokemonInfo.unpinInBackground(OwningPokemonInfo.localDBTableName); //remove from local
+        pokemonInfo.deleteEventually(); //remove from remote
+
+    }
+
+    @Override
+    public void done(List<OwningPokemonInfo> objects, ParseException e) {
+        if (e == null) {
+            owningPokemonInfos.clear();
+            for (OwningPokemonInfo owningPokemonInfo : objects) {
+                owningPokemonInfos.add(owningPokemonInfo);
+            }
+            Log.d(OwningPokemonInfo.debug_tag, "finishing loading from local DB");
+        } else {
+            Log.d(OwningPokemonInfo.debug_tag, "fail to load from local DB");
+        }
+
+        if (adapter != null)
+            adapter.notifyDataSetChanged();
+    }
 }

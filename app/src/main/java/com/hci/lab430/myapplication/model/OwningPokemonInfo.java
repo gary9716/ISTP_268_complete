@@ -14,7 +14,6 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,20 +26,18 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
     public final static int maxNumSkills = 4;
     public static String[] typeNames;
 
-    public final static String parcelKey = "OwningPokemonInfo.parcel";
-    public final static String nameKey = "OwningPokemonInfo.name";
-    public final static String listImgIdKey = "OwningPokemonInfo.listImgId";
-    public final static String listImgKey = "OwningPokemonInfo.listImg";
-    public final static String listImgUrlKey = "OwningPokemonInfo.listImgUrl";
+    public final static String parcelKey = "parcel";
+    public final static String nameKey = "name";
+    public final static String listImgIdKey = "listImgId";
+    public final static String listImgUrlKey = "listImgUrl";
 
-    public final static String levelKey = "OwningPokemonInfo.level";
-    public final static String currentHPKey = "OwningPokemonInfo.currentHP";
-    public final static String maxHPKey = "OwningPokemonInfo.maxHP";
-    public final static String detailImgIdKey = "OwningPokemonInfo.detailImgId";
-    public final static String detailImgKey = "OwningPokemonInfo.detailImg";
-    public final static String type1Key = "OwningPokemonInfo.type1";
-    public final static String type2Key = "OwningPokemonInfo.type2";
-    public final static String skillKey = "OwningPokemonInfo.skill";
+    public final static String levelKey = "level";
+    public final static String currentHPKey = "currentHP";
+    public final static String maxHPKey = "maxHP";
+    public final static String detailImgIdKey = "detailImgId";
+    public final static String type1Key = "type1";
+    public final static String type2Key = "type2";
+    public final static String skillKey = "skill";
 
     public boolean isSelected = false;
     public boolean isHealing = false;
@@ -107,11 +104,6 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
         return getInt(listImgIdKey);
     }
 
-    public ParseFile getListImgFile() {
-        ParseFile parseFile = getParseFile(listImgKey);
-        return parseFile;
-    }
-
     public void setListImgId(int listImgId) {
         put(listImgIdKey, listImgId);
     }
@@ -122,17 +114,6 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
 
     public String getListImgUrl() {
         return getString(listImgUrlKey);
-    }
-
-    public void setListImgFile(Drawable d) {
-        final ParseFile imgFile = new ParseFile(Utils.drawableToBytes(d, Bitmap.CompressFormat.PNG));
-        imgFile.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                put(listImgKey, imgFile);
-                Log.d("image", "done");
-            }
-        });
     }
 
     public String getName() {
@@ -212,32 +193,29 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
     public static final String debug_tag = OwningPokemonInfo.class.getName();
     public static final String localDBTableName = OwningPokemonInfo.class.getName();
 
-    public static void syncToParse() {
-        ParseQuery<OwningPokemonInfo> query = OwningPokemonInfo.getQuery();
-        query.fromPin(localDBTableName);
-        query.findInBackground(new FindCallback<OwningPokemonInfo>() {
-            @Override
-            public void done(List<OwningPokemonInfo> objects, com.parse.ParseException e) {
-                if (e == null) {
-                    for (final OwningPokemonInfo pokemonInfo : objects) {
-                        pokemonInfo.saveEventually();
-                    }
-                } else {
-                    Log.d(debug_tag,
-                            "syncToParse: Error finding pinned owningPokemonInfo: "
-                                    + e.getMessage());
-                }
-            }
+    public static void initTable(final ArrayList<OwningPokemonInfo> owningPokemonInfos) {
 
+        OwningPokemonInfo.getQuery().fromPin(localDBTableName).findInBackground(new FindCallback<OwningPokemonInfo>() {
+            @Override
+            public void done(List<OwningPokemonInfo> objects, ParseException e) {
+                final ArrayList<OwningPokemonInfo> newOwningPokemonInfos = owningPokemonInfos;
+                OwningPokemonInfo.unpinAllInBackground(localDBTableName);
+                for(OwningPokemonInfo owningPokemonInfo : objects) {
+                    owningPokemonInfo.deleteEventually();
+                }
+                syncToDB(newOwningPokemonInfos);
+            }
         });
 
     }
 
-    public static void syncToLocalDB(List<OwningPokemonInfo> owningPokemonInfos) {
-        //first delete previous record
-        OwningPokemonInfo.unpinAllInBackground(OwningPokemonInfo.localDBTableName);
-        //and then save with new record
+    public static void syncToDB(List<OwningPokemonInfo> owningPokemonInfos) {
+        //save with new record
         OwningPokemonInfo.pinAllInBackground(OwningPokemonInfo.localDBTableName, owningPokemonInfos);
+
+        for(OwningPokemonInfo owningPokemonInfo : owningPokemonInfos) {
+            owningPokemonInfo.saveEventually();
+        }
     }
 
 
