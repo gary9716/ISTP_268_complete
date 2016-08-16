@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.hci.lab430.myapplication"
-        minSdkVersion 15
+        minSdkVersion 17
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -40,4 +40,7 @@ dependencies {
     compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile 'com.parse:parsefacebookutils-v4-android:1.10.3@aar'
+    compile 'com.google.android.gms:play-services-maps:9.4.0'
+    compile 'com.google.android.gms:play-services-location:9.4.0'
+    compile 'com.squareup.okhttp:okhttp:2.7.5'
 }

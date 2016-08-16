@@ -1,6 +1,7 @@
 package com.hci.lab430.myapplication.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,8 @@ import com.hci.lab430.myapplication.R;
 import com.hci.lab430.myapplication.fragment.PokemonSearchFragment;
 import com.hci.lab430.myapplication.model.SearchPokemonInfo;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,22 +26,21 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
 
     int mRowLayoutId;
     LayoutInflater mInflater;
-    PokemonSearchFragment searchFragment;
 
     public PokemonSearchListViewAdapter(Context context, int resource, List<SearchPokemonInfo> objects, PokemonSearchFragment fragment) {
         super(context, resource, objects);
         mInflater = LayoutInflater.from(context);
         mRowLayoutId = resource;
-        searchFragment = fragment;
+        ViewHolder.searchFragment = fragment;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         SearchPokemonInfo dataItem = getItem(position);
-        ViewHolder viewHolder = null;
+        ViewHolder viewHolder;
         if(convertView == null) { //create a new one if it hasn't been initiated yet.
             convertView = mInflater.inflate(mRowLayoutId, parent, false);
-            viewHolder = new ViewHolder(convertView, this);
+            viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         }
         else {
@@ -56,11 +58,9 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
         TextView hpText;
         TextView nameText;
         ImageView imgView;
-        PokemonSearchListViewAdapter mAdapter;
+        public static PokemonSearchFragment searchFragment;
 
-
-        ViewHolder(View rowView, PokemonSearchListViewAdapter adapter) {
-            mAdapter = adapter;
+        ViewHolder(View rowView) {
             imageLoader = ImageLoader.getInstance();
             typeText[0] = (TextView)rowView.findViewById(R.id.type1Text);
             typeText[1] = (TextView)rowView.findViewById(R.id.type2Text);
@@ -74,18 +74,44 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
             typeText[1].setText("");
             ArrayList<Integer> typeIndices = dataItem.getTypeIndices();
             for(int i = 0;i < typeIndices.size();i++) {
-                if(mAdapter.searchFragment.typeList != null) {
+                if(searchFragment.typeList != null) {
                     int typeIndex = typeIndices.get(i);
-                    if(mAdapter.searchFragment.typeList.get(0).equals("none")) {
+                    if(searchFragment.typeList.get(0).equals("none")) {
                         typeIndex++;
                     }
-                    typeText[i].setText(mAdapter.searchFragment.typeList.get(typeIndex));
+                    typeText[i].setText(searchFragment.typeList.get(typeIndex));
                 }
             }
             hpText.setText(String.valueOf(dataItem.getHP()));
             nameText.setText(dataItem.getName());
+            ImageLoader.getInstance().displayImage("http://www.csie.ntu.edu.tw/~r03944003/listImg/" + dataItem.getPokedex() + ".png", imgView, imageLoadingListener);
         }
 
+        ImageLoadingListener imageLoadingListener = new ImageLoadingListener() {
+            @Override
+            public void onLoadingStarted(String imageUri, View view) {
+
+            }
+
+            @Override
+            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+
+            }
+
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                searchFragment.adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onLoadingCancelled(String imageUri, View view) {
+
+            }
+        };
+    }
+
+    public void releaseAll() {
+        ViewHolder.searchFragment = null;
     }
 
 }

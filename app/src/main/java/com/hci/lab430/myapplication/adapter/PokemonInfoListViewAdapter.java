@@ -28,9 +28,8 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
 
     int mRow_layout_id;
     LayoutInflater mInflater;
-    Picasso mPicasso;
     public ArrayList<OwningPokemonInfo> selectedPokemons;
-    OnPokemonInfoStateChangeListener stateChangeListener = null;
+    public OnPokemonInfoStateChangeListener stateChangeListener = null;
 
     public PokemonInfoListViewAdapter(Context context,
                                       int resource,
@@ -38,21 +37,10 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
         super(context, resource, objects);
         mRow_layout_id = resource;
         mInflater = LayoutInflater.from(context);
-        mPicasso = Picasso.with(context);
         selectedPokemons = new ArrayList<>();
-
+        ViewHolder.mAdapter = this;
+        ViewHolder.mPicasso = Picasso.with(context);
     }
-
-    public PokemonInfoListViewAdapter(Context context,
-                                      int resource,
-                                      ArrayList<OwningPokemonInfo> objects,
-                                      OnPokemonInfoStateChangeListener listener) {
-        this(context, resource, objects);
-        stateChangeListener = listener;
-
-    }
-
-
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -60,7 +48,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
         ViewHolder viewHolder = null;
         if(convertView == null) { //create a new one if it hasn't been initiated yet.
             convertView = mInflater.inflate(mRow_layout_id, parent, false);
-            viewHolder = new ViewHolder(convertView, mPicasso, this);
+            viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         }
         else {
@@ -81,10 +69,9 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
             stateChangeListener.onPokemonInfoSelectedChange(this);
         }
 
-        if(owningPokemonInfo.isSelected) {
+        if (owningPokemonInfo.isSelected) {
             selectedPokemons.add(owningPokemonInfo);
-        }
-        else {
+        } else {
             selectedPokemons.remove(owningPokemonInfo);
         }
 
@@ -130,11 +117,12 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
         private TextView mMaxHPTxt = null;
         private ProgressBar mHPBar = null;
 
-        private Picasso mPicasso;
-        private OwningPokemonInfo mOwningPokemonInfo = null;
-        private PokemonInfoListViewAdapter mAdapter;
+        public static Picasso mPicasso;
+        public static PokemonInfoListViewAdapter mAdapter;
 
-        public ViewHolder(View row_view, Picasso picasso, PokemonInfoListViewAdapter adapter) {
+        private OwningPokemonInfo mOwningPokemonInfo = null;
+
+        public ViewHolder(View row_view) {
             mRowView = row_view;
             mAppearanceImg = (ImageView)row_view.findViewById(R.id.appearance_image);
             mNameTxt = (TextView) row_view.findViewById(R.id.name);
@@ -142,13 +130,12 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
             mCurrentHPTxt = (TextView) row_view.findViewById(R.id.currentHP);
             mMaxHPTxt = (TextView) row_view.findViewById(R.id.maxHP);
             mHPBar = (ProgressBar) row_view.findViewById(R.id.HP_progressBar);
-            mPicasso = picasso;
-            mAdapter = adapter;
+
         }
 
         public void setView(OwningPokemonInfo data) {
             mOwningPokemonInfo = data;
-//            ImageLoader.getInstance().displayImage(data.getListImgUrl(), mAppearanceImg);
+
             mRowView.setActivated(data.isSelected);
             mPicasso.load(data.getListImgId()).into(mAppearanceImg);
             mAppearanceImg.setOnClickListener(this);
@@ -229,4 +216,13 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
         }
 
     }
+
+    public void releaseAll() {
+        ViewHolder.mAdapter = null;
+        ViewHolder.mPicasso = null;
+        stateChangeListener = null;
+        selectedPokemons.clear();
+        selectedPokemons = null;
+    }
+
 }

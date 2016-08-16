@@ -24,6 +24,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         ParseObject.registerSubclass(OwningPokemonInfo.class);
+
         ParseObject.registerSubclass(SearchPokemonInfo.class);
         ParseObject.registerSubclass(PokemonType.class);
 //        Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())

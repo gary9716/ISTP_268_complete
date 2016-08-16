@@ -40,14 +40,17 @@ import java.util.List;
  */
 public class PokemonListFragment extends ItemFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener, FindCallback<OwningPokemonInfo> {
 
-    PokemonInfoListViewAdapter adapter;
+    AlertDialog deleteActionDialog;
+    View fragmentView;
+    Activity activity = getActivity();
+
+    public PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
     MediaPlayer mediaPlayer = null;
     Handler handler;
-    AlertDialog deleteActionDialog;
-    Activity activity = getActivity();
+
     ArrayList<OwningPokemonInfo> owningPokemonInfos;
-    View fragmentView;
+
 
     public static PokemonListFragment newInstance() {
         PokemonListFragment fragment = new PokemonListFragment();
@@ -66,7 +69,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         owningPokemonInfos = new ArrayList<>();
         prepareListViewData();
 
-        adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos, this);
+        adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos);
+        adapter.stateChangeListener = this;
 
         deleteActionDialog = new AlertDialog.Builder(activity)
                 .setMessage("你確定要丟棄神奇寶貝們嗎？")
@@ -75,6 +79,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
                 .setPositiveButton("確認", this)
                 .setCancelable(false)
                 .create();
+
     }
 
     private final static String recordIsInDBKey = "recordIsInDB";
@@ -115,8 +120,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater,container,savedInstanceState);
-        if(fragmentView == null) {
 
+        if(fragmentView == null) {
             fragmentView = inflater.inflate(R.layout.pokemon_list, container, false);
 
             ListView pokemonListView = (ListView) fragmentView.findViewById(R.id.pokemonListView);
@@ -126,7 +131,6 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
 
             setHasOptionsMenu(true);
             setMenuVisibility(true);
-
         }
 
         return fragmentView;
@@ -235,17 +239,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
                 mediaPlayer.setVolume(1.0f, 1.0f);
                 mediaPlayer.start();
 
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                            owningPokemonInfo.isHealing = true;
-                        }
-                        adapter.notifyDataSetChanged();
-                        adapter.selectedPokemons.clear();
-                        setMenuVisibility(false);
-                    }
-                }, 1000);
+                handler.postDelayed(startHealingEffect, 1000);
             }
             else {
                 adapter.selectedPokemons.clear();
@@ -269,23 +263,27 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         return false;
     }
 
+    Runnable startHealingEffect = new Runnable() {
+        @Override
+        public void run() {
+            for (OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
+                owningPokemonInfo.isHealing = true;
+            }
+            adapter.notifyDataSetChanged();
+            adapter.selectedPokemons.clear();
+            setMenuVisibility(false);
+        }
+    };
+
     @Override
     public void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter) {
         getActivity().invalidateOptionsMenu();
     }
 
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        //release some resource here
-        if(!isVisible()) {
-            fragmentView = null;
-        }
-    }
-
     public void removePokemonInfo(OwningPokemonInfo pokemonInfo) {
+        if(adapter != null)
+            adapter.remove(pokemonInfo);
 
-        adapter.remove(pokemonInfo);
         //and remove from database
         pokemonInfo.unpinInBackground(OwningPokemonInfo.localDBTableName); //remove from local
         pokemonInfo.deleteEventually(); //remove from remote
@@ -307,4 +305,25 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         if (adapter != null)
             adapter.notifyDataSetChanged();
     }
+
+    //memory management
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        deleteActionDialog = null;
+        fragmentView = null;
+        activity = null;
+
+        adapter.releaseAll();
+        adapter = null;
+        startHealingEffect = null;
+        handler = null;
+        mediaPlayer = null;
+        dataManager.releaseAll();
+        dataManager = null;
+
+        owningPokemonInfos.clear();
+        owningPokemonInfos = null;
+    }
+
 }

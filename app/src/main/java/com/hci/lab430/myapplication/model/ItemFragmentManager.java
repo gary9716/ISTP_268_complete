@@ -18,7 +18,6 @@ public class ItemFragmentManager implements ItemFragment.OnStateChangedListener,
 
     public FragmentManager mFragmentManager;
     public ItemFragment mVisibleFragment = null;
-
     OnBackStackChangedListener mBackStackChangedListener = null;
     int mFragmentContainerId;
     int preBackStackCount = 0;
@@ -76,6 +75,12 @@ public class ItemFragmentManager implements ItemFragment.OnStateChangedListener,
             }
         }
         preBackStackCount = currentBackStackCount;
+    }
+
+    public void releaseAll() {
+        mFragmentManager = null;
+        mVisibleFragment = null;
+        mBackStackChangedListener = null;
     }
 
 }

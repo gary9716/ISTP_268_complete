@@ -23,10 +23,10 @@ public class PokemonDetailActivity extends CustomizedActivity {
     public final static int removeFromList = 2;
 
     OwningPokemonInfo mData;
+    Picasso mPicasso;
+
     String packageName;
     Resources mRes;
-    Picasso mPicasso;
-    Intent returnIntent;
 
     //UI
     ImageView appearanceImg;
@@ -46,7 +46,6 @@ public class PokemonDetailActivity extends CustomizedActivity {
         mRes = getResources();
         packageName = getPackageName();
         mPicasso = Picasso.with(this);
-        returnIntent = new Intent();
 
         setView();
     }
@@ -74,6 +73,7 @@ public class PokemonDetailActivity extends CustomizedActivity {
         levelText.setText(String.valueOf(mData.getLevel()));
         currentHPText.setText(String.valueOf(mData.getCurrentHP()));
         maxHPText.setText(String.valueOf(mData.getMaxHP()));
+
         if(mData.getType_1() != -1) {
             type1Text.setText(OwningPokemonInfo.typeNames[mData.getType_1()]);
         }
@@ -87,6 +87,7 @@ public class PokemonDetailActivity extends CustomizedActivity {
         else {
             type2Text.setText("");
         }
+
         for(int i = 0;i < mData.getSkill().length;i++) {
             if(mData.getSkill()[i] != null) {
                 skillsText[i].setText(mData.getSkill()[i]);
@@ -95,6 +96,7 @@ public class PokemonDetailActivity extends CustomizedActivity {
                 skillsText[i].setText("");
             }
         }
+
         HPProgressBar.setProgress((int)(((float) mData.getCurrentHP() / mData.getMaxHP()) * 100));
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -111,9 +113,10 @@ public class PokemonDetailActivity extends CustomizedActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if(itemId == R.id.action_save) {
+            Intent returnIntent = new Intent();
             returnIntent.putExtra(OwningPokemonInfo.nameKey, mData.getName());
             setResult(removeFromList, returnIntent);
-            onBackPressed();
+            finish();
             return true;
         }
         else if(itemId == R.id.action_level_up){
@@ -122,11 +125,17 @@ public class PokemonDetailActivity extends CustomizedActivity {
             return true;
         }
         else if(itemId == android.R.id.home) {
-            onBackPressed();
+            finish();
             return true;
         }
 
         return false;
     }
 
+    @Override
+    protected void onDestroy() {
+        mData = null;
+        mPicasso = null;
+        super.onDestroy();
+    }
 }

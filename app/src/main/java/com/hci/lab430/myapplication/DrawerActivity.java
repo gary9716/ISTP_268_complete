@@ -1,6 +1,7 @@
 package com.hci.lab430.myapplication;
 
 import android.app.Application;
+import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -8,9 +9,13 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.hci.lab430.myapplication.fragment.ItemFragment;
 import com.hci.lab430.myapplication.fragment.LogFragment;
 import com.hci.lab430.myapplication.fragment.PokemonListFragment;
+import com.hci.lab430.myapplication.fragment.PokemonMapFragment;
 import com.hci.lab430.myapplication.fragment.PokemonSearchFragment;
 import com.hci.lab430.myapplication.fragment.TestFragment1;
 import com.hci.lab430.myapplication.model.ItemFragmentManager;
@@ -28,12 +33,12 @@ import com.mikepenz.materialdrawer.model.interfaces.IProfile;
  */
 public class DrawerActivity extends CustomizedActivity implements ItemFragmentManager.OnBackStackChangedListener {
 
-    private Toolbar toolbar;
     private Drawer naviDrawer;
     private AccountHeader headerResult = null;
     private IProfile profile;
     private ItemFragmentManager itemFragmentManager;
     private ItemFragment[] fragments;
+
     private int defaultSelectedDrawerIndex = 0;
 
     @Override
@@ -48,22 +53,22 @@ public class DrawerActivity extends CustomizedActivity implements ItemFragmentMa
         ((LogFragment)fragments[0]).actualName = "f0";
         fragments[1] = PokemonSearchFragment.newInstance();
         ((LogFragment) fragments[1]).actualName = "f1";
-        fragments[2] = TestFragment1.newInstance("fake 2");
-        ((LogFragment)fragments[2]).actualName = "f2";
+        fragments[2] = PokemonMapFragment.newInstance();
+        ((LogFragment) fragments[2]).actualName = "f2";
 
         itemFragmentManager = new ItemFragmentManager(this, R.id.fragmentContainer, fragments, defaultSelectedDrawerIndex);
         itemFragmentManager.setOnBackStackChangedListener(this);
 
         // Set a Toolbar to replace the ActionBar.
         // so it would be laid below the drawer when the drawer comes out
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
 
         SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
         String profileName = preferences.getString(MainActivity.nameTextKey, "Batman");
         String email = preferences.getString(MainActivity.emailKey, "batman@gmail.com");
         String imgUrl = preferences.getString(MainActivity.profileImgUrlKey, null);
+
         if(imgUrl == null) {
             Drawable profileIcon = null;
             profileIcon = Utils.getDrawable(this, R.drawable.profile3);
@@ -142,5 +147,18 @@ public class DrawerActivity extends CustomizedActivity implements ItemFragmentMa
     @Override
     public void onPopOutBackStack() {
         naviDrawer.setSelectionAtPosition(itemFragmentManager.mVisibleFragment.itemIndex + 1, false);
+    }
+
+    @Override
+    protected void onDestroy() {
+        itemFragmentManager.releaseAll();
+        itemFragmentManager = null;
+
+        profile = null;
+        headerResult = null;
+        naviDrawer = null;
+
+        fragments = null;
+        super.onDestroy();
     }
 }

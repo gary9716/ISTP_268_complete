@@ -39,7 +39,11 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         handler = new Handler(getMainLooper());
         mediaPlayer = Utils.loadSongFromAssets(this,"healing_sound2.mp3");
         dataManager = new OwningPokemonDataManager(this);
-        ArrayList<OwningPokemonInfo> owningPokemonInfos = dataManager.getOwningPokemonInfos();
+        dataManager.loadPokemonTypes();
+        dataManager.loadListViewData();
+
+        ArrayList<OwningPokemonInfo> owningPokemonInfos = new ArrayList<>();
+        owningPokemonInfos.addAll(dataManager.getOwningPokemonInfos());
 
         Intent srcIntent = getIntent();
         int selectedInitPokemonIndex =
@@ -47,7 +51,8 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         OwningPokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
         owningPokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
 
-        adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos, this);
+        adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos);
+        adapter.stateChangeListener = this;
 
         ListView pokemonListView = (ListView)findViewById(R.id.pokemonListView);
         pokemonListView.setAdapter(adapter);
@@ -92,25 +97,15 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
                 if(owningPokemonInfo.getCurrentHP() < owningPokemonInfo.getMaxHP()) {
                     shouldHeal = true;
                 }
-
             }
+
             adapter.notifyDataSetChanged();
 
             if(shouldHeal) {
                 mediaPlayer.setVolume(1.0f, 1.0f);
                 mediaPlayer.start();
 
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                            owningPokemonInfo.isHealing = true;
-                        }
-                        adapter.notifyDataSetChanged();
-                        adapter.selectedPokemons.clear();
-                        invalidateOptionsMenu();
-                    }
-                }, 1000);
+                handler.postDelayed(startHealingTask, 1000);
             }
             else {
                 adapter.selectedPokemons.clear();
@@ -125,6 +120,18 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
 
         return false;
     }
+
+    private Runnable startHealingTask = new Runnable() {
+        @Override
+        public void run() {
+            for (OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
+                owningPokemonInfo.isHealing = true;
+            }
+            adapter.notifyDataSetChanged();
+            adapter.selectedPokemons.clear();
+            invalidateOptionsMenu();
+        }
+    };
 
     private final static int detailActRequestCode = 1;
 
@@ -199,5 +206,19 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
     @Override
     public void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter) {
         invalidateOptionsMenu();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        adapter.releaseAll();
+        dataManager.releaseAll();
+        dataManager = null;
+        mediaPlayer = null;
+        startHealingTask = null;
+        handler = null;
+        deleteActionDialog = null;
+
+        super.onDestroy();
     }
 }

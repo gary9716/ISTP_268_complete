@@ -51,10 +51,6 @@ public class OwningPokemonDataManager {
         String line = null;
         String[] dataFields = null;
         try {
-            //load pokemon types
-            reader = new BufferedReader(new InputStreamReader(mContext.getAssets().open("pokemon_types.csv")));
-            OwningPokemonInfo.typeNames = reader.readLine().split(",");
-            reader.close();
 
             //load initial three pokemon data
             reader = new BufferedReader(new InputStreamReader(mContext.getAssets().open("init_pokemon_data.csv")));
@@ -115,6 +111,14 @@ public class OwningPokemonDataManager {
 
     public OwningPokemonInfo[] getInitThreePokemonInfos() {
         return initThreePokemons;
+    }
+
+    public void releaseAll() {
+        owningPokemonInfos.clear();
+        owningPokemonInfos = null;
+        pokemonNames.clear();
+        pokemonNames = null;
+        initThreePokemons = null;
     }
 
 }

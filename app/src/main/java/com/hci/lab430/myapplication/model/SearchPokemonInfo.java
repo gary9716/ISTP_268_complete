@@ -40,4 +40,8 @@ public class SearchPokemonInfo extends ParseObject {
         return getInt(hpKey);
     }
 
+    public String getPokedex() {
+        return getString(resIdKey);
+    }
+
 }

@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -37,15 +36,13 @@ import java.util.List;
 public class PokemonSearchFragment extends ItemFragment implements DialogInterface.OnClickListener{
 
     AlertDialog alertDialog;
+    View fragmentView;
+    TextView infoText;
+    public PokemonSearchListViewAdapter adapter;
     DialogViewHolder dialogViewHolder;
 
-    View fragmentView;
     ArrayList<SearchPokemonInfo> searchResult = new ArrayList<>();
-    TextView infoText;
-
     public ArrayList<String> typeList = null;
-
-    PokemonSearchListViewAdapter adapter;
 
     public static PokemonSearchFragment newInstance() {
 
@@ -61,7 +58,10 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         setMenuVisibility(false);
-        adapter = new PokemonSearchListViewAdapter(getActivity(),R.layout.search_row_view,searchResult,this);
+
+    }
+
+    public void requestTypeList() {
         PokemonType.getQuery().getFirstInBackground(new GetCallback<PokemonType>() {
             @Override
             public void done(PokemonType object, ParseException e) {
@@ -69,14 +69,16 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
                     typeList = object.getTypeArray();
                     if (typeList != null)
                         setMenuVisibility(true);
-                    else {
+                    if (dialogViewHolder != null) {
+                        dialogViewHolder.setTypeList(0, typeList);
+                        dialogViewHolder.setTypeList(1, typeList);
+                    } else {
                         setMenuVisibility(false);
                         Toast.makeText(getActivity(), "沒抓到屬性列表", Toast.LENGTH_LONG).show();
                     }
                 }
             }
         });
-
     }
 
     public void hideOrShowInfoText(ArrayList<SearchPokemonInfo> result) {
@@ -96,10 +98,11 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
 
         if(fragmentView == null) {
             fragmentView = inflater.inflate(R.layout.fragment_search, container, false);
+            adapter = new PokemonSearchListViewAdapter(getActivity(),
+                    R.layout.search_row_view,
+                    searchResult,
+                    this);
             ((ListView)fragmentView.findViewById(R.id.listView)).setAdapter(adapter);
-        }
-
-        if(infoText == null) {
             infoText = (TextView)fragmentView.findViewById(R.id.infoText);
         }
 
@@ -137,6 +140,7 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
             if(dialogViewHolder.constrainedByRightInterval()) {
                 query = query.whereLessThan(SearchPokemonInfo.hpKey, dialogViewHolder.getRightIntervalVal());
             }
+            query = query.addAscendingOrder(SearchPokemonInfo.hpKey);
         }
 
         if(dialogViewHolder.conditionIsUsed(2)) { //types box
@@ -184,6 +188,13 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
         }
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if(typeList == null) {
+            requestTypeList();
+        }
+    }
 
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
@@ -207,7 +218,6 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
 
         return false;
     }
-
 
     public static class DialogViewHolder {
         View dialogView;
@@ -237,15 +247,6 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
             typeSelectors[1] = (Spinner)dialogView.findViewById(R.id.type2Selector);
         }
 
-        public boolean conditionIsUsed(int index) {
-            if(index < 3) {
-                return conditionBoxes[index].isChecked();
-            }
-            else {
-                return false;
-            }
-        }
-
         public String getInputName() {
             return nameText.getText().toString();
         }
@@ -266,10 +267,19 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
             return Float.valueOf(rightInterval.getText().toString());
         }
 
+        public boolean conditionIsUsed(int index) {
+            if(index < 3) {
+                return conditionBoxes[index].isChecked();
+            }
+            else {
+                return false;
+            }
+        }
+
         public int getSelectedType(int typeIndex) {
             int selectedPos = typeSelectors[typeIndex].getSelectedItemPosition();
             if(selectedPos == 0)
-                return -1;
+                return -1; //none is not part of original data
             else
                 return selectedPos - 1;
         }
@@ -284,4 +294,41 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
         }
 
     }
+
+    //memory managing code
+    @Override
+    public void onDestroy() {
+        releaseAll();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        if(level == TRIM_MEMORY_UI_HIDDEN) { //release whenever UI is hidden
+            releaseViewRelatedResource();
+        }
+
+//        if(level == TRIM_MEMORY_MODERATE) { //we should start to release some resources
+//            releaseViewRelatedResource();
+//        }
+
+        super.onTrimMemory(level);
+    }
+
+    //we should recover these in onCreateView
+    private void releaseViewRelatedResource() {
+        fragmentView = null;
+        infoText = null;
+        alertDialog = null;
+        dialogViewHolder = null;
+        adapter.releaseAll();
+        adapter = null;
+    }
+
+    private void releaseAll() {
+        releaseViewRelatedResource();
+        searchResult = null;
+        typeList = null;
+    }
+
 }

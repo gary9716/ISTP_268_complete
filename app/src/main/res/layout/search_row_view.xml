@@ -30,10 +30,8 @@
         android:text="hpVal"
         android:id="@+id/hpText"
         android:layout_alignTop="@+id/nameText"
-        android:layout_toRightOf="@+id/nameText"
-        android:layout_toEndOf="@+id/nameText"
-        android:layout_marginLeft="30dp"
-        android:layout_marginStart="30dp" />
+        android:layout_marginLeft="25dp"
+        android:layout_toRightOf="@+id/nameText" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -47,11 +45,12 @@
     <ImageView
         android:id="@+id/listImg"
         android:src="@drawable/pokemon_ball"
-        android:scaleX="1"
-        android:scaleY="1"
+        android:scaleX="1.4"
+        android:scaleY="1.4"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:layout_margin="30dp" />
+
 </RelativeLayout>

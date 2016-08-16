@@ -26,4 +26,9 @@ public class ItemFragment extends LogFragment {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        mStateChangedListener = null;
+        super.onDestroy();
+    }
 }

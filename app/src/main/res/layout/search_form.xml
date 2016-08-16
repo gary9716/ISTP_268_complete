@@ -112,7 +112,7 @@
                 <CheckBox
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="無左邊界"
+                    android:text="有左邊界"
                     android:id="@+id/leftIntervalConditionBox"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1" />
@@ -120,7 +120,7 @@
                 <CheckBox
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="無右邊界"
+                    android:text="有右邊界"
                     android:id="@+id/rightIntervalConditionBox"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1" />

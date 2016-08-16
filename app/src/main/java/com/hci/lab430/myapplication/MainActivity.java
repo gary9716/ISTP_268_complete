@@ -34,24 +34,13 @@ import fr.castorflex.android.circularprogressbar.CircularProgressDrawable;
 public class MainActivity extends CustomizedActivity implements View.OnClickListener,RadioGroup.OnCheckedChangeListener,EditText.OnEditorActionListener{
 
     public final static String selectedPokemonIndexKey = "selectedPokemonIndex";
-
     public static final String optionSelectedKey = "optionSelectedKey";
     public static final String nameTextKey = "nameTextKey";
     public static final String profileImgUrlKey = "profileImgUrlKey";
     public static final String emailKey = "emailKey";
+    static final int changeActivityInSecs = 5;
 
-    TextView infoText;
-//    EditText nameEditText;
-    RadioGroup optionGroup;
-    Button confirmBtn;
-
-    int selectedOptionIndex = 0;
-    String nameOfTheTrainer = null;
-    int changeActivityInSecs = 5;
-
-    ProgressBar progressBar;
-
-    String[] pokemonNames = new String[]{
+    final String[] pokemonNames = new String[]{
             "小火龍",
             "傑尼龜",
             "妙蛙種子"
@@ -62,11 +51,19 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         DataIsKnown
     }
 
+    TextView infoText;
+//    EditText nameEditText;
+    RadioGroup optionGroup;
+    Button confirmBtn;
+    ProgressBar progressBar;
+    LoginButton loginBtn;
+
+    int selectedOptionIndex = 0;
+    String nameOfTheTrainer = null;
+
     Handler uiHandler;
     SharedPreferences preferences;
     UISetting uiSetting;
-
-    LoginButton loginBtn;
 
     CallbackManager callbackManager;
     AccessToken accessToken;
@@ -75,7 +72,8 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         callbackManager = CallbackManager.Factory.create();
 
         loginBtn.setReadPermissions("public_profile", "email");
-        loginBtn.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+        loginBtn.registerCallback(callbackManager,
+                new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 accessToken = loginResult.getAccessToken();
@@ -94,42 +92,44 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         });
     }
 
-    public void sendGraphReq() {
-        if(accessToken != null) {
-            GraphRequest request = GraphRequest.newMeRequest(
-                    accessToken,
-                    new GraphRequest.GraphJSONObjectCallback() {
+    GraphRequest.GraphJSONObjectCallback graphCallback = new GraphRequest.GraphJSONObjectCallback() {
 
-                        //當RESPONSE回來的時候
+        //當RESPONSE回來的時候
 
-                        @Override
-                        public void onCompleted(JSONObject object, GraphResponse response) {
+        @Override
+        public void onCompleted(JSONObject object, GraphResponse response) {
 
-                            //讀出姓名 ID FB個人頁面連結
-                            if (response != null) {
-                                SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
-                                SharedPreferences.Editor editor = preferences.edit();
-                                nameOfTheTrainer = object.optString("name");
-                                editor.putString(nameTextKey, nameOfTheTrainer);
-                                editor.putString(emailKey, object.optString("email"));
+            //讀出姓名 ID FB個人頁面連結
+            if (response != null) {
+                SharedPreferences preferences = getSharedPreferences(Application.class.getName(), MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                nameOfTheTrainer = object.optString("name");
+                editor.putString(nameTextKey, nameOfTheTrainer);
+                editor.putString(emailKey, object.optString("email"));
 
 //                                Log.d("FB", object.optString("name"));
 //                                Log.d("FB", object.optString("email"));
 //                                Log.d("FB", object.optString("id"));
 
-                                if (object.has("picture")) {
-                                    try {
-                                        String profilePicUrl = object.getJSONObject("picture").getJSONObject("data").getString("url");
-                                        editor.putString(profileImgUrlKey, profilePicUrl);
-                                    } catch (Exception e) {
-                                        Log.d("FB", e.getLocalizedMessage());
-                                    }
-                                }
+                if (object.has("picture")) {
+                    try {
+                        String profilePicUrl = object.getJSONObject("picture").getJSONObject("data").getString("url");
+                        editor.putString(profileImgUrlKey, profilePicUrl);
+                    } catch (Exception e) {
+                        Log.d("FB", e.getLocalizedMessage());
+                    }
+                }
 
-                                editor.commit();
-                            }
-                        }
-                    });
+                editor.commit();
+            }
+        }
+    };
+
+    public void sendGraphReq() {
+        if(accessToken != null) {
+            GraphRequest request = GraphRequest.newMeRequest(
+                    accessToken,
+                    graphCallback);
 
             Bundle parameters = new Bundle();
             parameters.putString("fields", "id,name,email,picture.type(large)");
@@ -180,7 +180,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
         optionGroup = (RadioGroup) findViewById(R.id.option_radioGrp);
         optionGroup.setOnCheckedChangeListener(this);
 
-        progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setIndeterminateDrawable(new CircularProgressDrawable
                 .Builder(this)
                 .colors(getResources().getIntArray(R.array.gplus_colors))
@@ -256,6 +256,17 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
 
     }
 
+    Runnable switchActivityTask = new Runnable() {
+        @Override
+        public void run() {
+            Intent intent = new Intent();
+            intent.putExtra(selectedPokemonIndexKey, selectedOptionIndex);
+            intent.setClass(MainActivity.this, DrawerActivity.class);
+            startActivity(intent);
+            MainActivity.this.finish();
+        }
+    };
+
     @Override
     public void onClick(View view) {
         int viewId = view.getId();
@@ -268,17 +279,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
 
             setInfoTextWithFormat();
 
-            uiHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Intent intent = new Intent();
-                    intent.putExtra(selectedPokemonIndexKey, selectedOptionIndex);
-                    intent.setClass(MainActivity.this, DrawerActivity.class);
-                    startActivity(intent);
-                    MainActivity.this.finish();
-                }
-            }, changeActivityInSecs * 1000);
-
+            uiHandler.postDelayed(switchActivityTask, changeActivityInSecs * 1000);
         }
     }
 
@@ -334,6 +335,21 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
 
     @Override
     protected void onDestroy() {
+
+        infoText = null;
+        optionGroup = null;
+        confirmBtn = null;
+        progressBar = null;
+        loginBtn = null;
+
+        uiHandler = null;
+        preferences = null;
+        callbackManager = null;
+        accessToken = null;
+
+        graphCallback = null;
+        switchActivityTask = null;
+
         super.onDestroy();
         Log.d("testStage", "onDestroy");
     }
