@@ -32,6 +32,7 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
 
     AlertDialog deleteActionDialog;
     View fragmentView;
-    Activity activity = getActivity();
+    Activity activity;
 
     public PokemonInfoListViewAdapter adapter;
     OwningPokemonDataManager dataManager;
@@ -50,7 +51,6 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     Handler handler;
 
     ArrayList<OwningPokemonInfo> owningPokemonInfos;
-
 
     public static PokemonListFragment newInstance() {
         PokemonListFragment fragment = new PokemonListFragment();
@@ -70,7 +70,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         prepareListViewData();
 
         adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos);
-        adapter.stateChangeListener = this;
+        adapter.stateChangeListener = new WeakReference<PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener>(this);
 
         deleteActionDialog = new AlertDialog.Builder(activity)
                 .setMessage("你確定要丟棄神奇寶貝們嗎？")
@@ -96,8 +96,6 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         else {
             ParseQuery<OwningPokemonInfo> query = OwningPokemonInfo.getQuery();
             query.fromPin(OwningPokemonInfo.localDBTableName).findInBackground(this); //query from local
-            query = OwningPokemonInfo.getQuery();
-            query.findInBackground(this); //query from remote
         }
 
     }
@@ -286,7 +284,6 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
 
         //and remove from database
         pokemonInfo.unpinInBackground(OwningPokemonInfo.localDBTableName); //remove from local
-        pokemonInfo.deleteEventually(); //remove from remote
 
     }
 

@@ -152,7 +152,8 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
                 }
             }
             findCallback.numTypesInCondition = typesCondition.size();
-            query = query.whereContainsAll(SearchPokemonInfo.typesKey, typesCondition);
+            query = query.whereContainsAll(SearchPokemonInfo.typesKey,
+                    typesCondition);
         }
 
         query.findInBackground(findCallback);
@@ -173,7 +174,8 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
             searchResult.clear();
             if(numTypesInCondition != -1) {
                 for(SearchPokemonInfo searchPokemonInfo : objects) {
-                    ArrayList<Integer> typeIndices = searchPokemonInfo.getTypeIndices();
+                    ArrayList<Integer> typeIndices =
+                            searchPokemonInfo.getTypeIndices();
                     if(typeIndices.size() == numTypesInCondition) {
                         searchResult.add(searchPokemonInfo);
                     }
@@ -304,13 +306,13 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
 
     @Override
     public void onTrimMemory(int level) {
-        if(level == TRIM_MEMORY_UI_HIDDEN) { //release whenever UI is hidden
-            releaseViewRelatedResource();
-        }
-
-//        if(level == TRIM_MEMORY_MODERATE) { //we should start to release some resources
+//        if(level == TRIM_MEMORY_UI_HIDDEN) { //release whenever UI is hidden
 //            releaseViewRelatedResource();
 //        }
+
+        if(level == TRIM_MEMORY_MODERATE) { //we should start to release some resources
+            releaseViewRelatedResource();
+        }
 
         super.onTrimMemory(level);
     }

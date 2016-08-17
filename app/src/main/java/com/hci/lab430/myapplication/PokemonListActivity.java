@@ -19,6 +19,7 @@ import com.hci.lab430.myapplication.model.OwningPokemonDataManager;
 import com.hci.lab430.myapplication.model.OwningPokemonInfo;
 import com.hci.lab430.myapplication.model.Utils;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -52,7 +53,7 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         owningPokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
 
         adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos);
-        adapter.stateChangeListener = this;
+        adapter.stateChangeListener = new WeakReference<PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener>(this);
 
         ListView pokemonListView = (ListView)findViewById(R.id.pokemonListView);
         pokemonListView.setAdapter(adapter);

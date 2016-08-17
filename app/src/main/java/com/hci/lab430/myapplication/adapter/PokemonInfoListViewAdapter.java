@@ -19,6 +19,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.parse.ParseFile;
 import com.squareup.picasso.Picasso;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 /**
@@ -29,7 +30,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
     int mRow_layout_id;
     LayoutInflater mInflater;
     public ArrayList<OwningPokemonInfo> selectedPokemons;
-    public OnPokemonInfoStateChangeListener stateChangeListener = null;
+    public WeakReference<OnPokemonInfoStateChangeListener> stateChangeListener = null;
 
     public PokemonInfoListViewAdapter(Context context,
                                       int resource,
@@ -65,8 +66,8 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
     }
 
     void onPokemonSelectedChange(OwningPokemonInfo owningPokemonInfo) {
-        if(stateChangeListener != null) {
-            stateChangeListener.onPokemonInfoSelectedChange(this);
+        if(stateChangeListener.get() != null) {
+            stateChangeListener.get().onPokemonInfoSelectedChange(this);
         }
 
         if (owningPokemonInfo.isSelected) {
@@ -75,8 +76,8 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
             selectedPokemons.remove(owningPokemonInfo);
         }
 
-        if(stateChangeListener != null) {
-            stateChangeListener.onPokemonInfoSelectedChange(this);
+        if(stateChangeListener.get() != null) {
+            stateChangeListener.get().onPokemonInfoSelectedChange(this);
         }
     }
 
@@ -218,6 +219,7 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
     }
 
     public void releaseAll() {
+        mInflater = null;
         ViewHolder.mAdapter = null;
         ViewHolder.mPicasso = null;
         stateChangeListener = null;

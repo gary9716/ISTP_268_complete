@@ -200,9 +200,6 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
             public void done(List<OwningPokemonInfo> objects, ParseException e) {
                 final ArrayList<OwningPokemonInfo> newOwningPokemonInfos = owningPokemonInfos;
                 OwningPokemonInfo.unpinAllInBackground(localDBTableName);
-                for(OwningPokemonInfo owningPokemonInfo : objects) {
-                    owningPokemonInfo.deleteEventually();
-                }
                 syncToDB(newOwningPokemonInfos);
             }
         });
@@ -212,10 +209,6 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
     public static void syncToDB(List<OwningPokemonInfo> owningPokemonInfos) {
         //save with new record
         OwningPokemonInfo.pinAllInBackground(OwningPokemonInfo.localDBTableName, owningPokemonInfos);
-
-        for(OwningPokemonInfo owningPokemonInfo : owningPokemonInfos) {
-            owningPokemonInfo.saveEventually();
-        }
     }
 
 

@@ -16,6 +16,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
         super(context, resource, objects);
         mInflater = LayoutInflater.from(context);
         mRowLayoutId = resource;
-        ViewHolder.searchFragment = fragment;
+        ViewHolder.searchFragment = new WeakReference<PokemonSearchFragment>(fragment);
     }
 
     @Override
@@ -58,7 +59,7 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
         TextView hpText;
         TextView nameText;
         ImageView imgView;
-        public static PokemonSearchFragment searchFragment;
+        public static WeakReference<PokemonSearchFragment> searchFragment;
 
         ViewHolder(View rowView) {
             imageLoader = ImageLoader.getInstance();
@@ -72,14 +73,18 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
         public void setView(SearchPokemonInfo dataItem) {
             typeText[0].setText("");
             typeText[1].setText("");
-            ArrayList<Integer> typeIndices = dataItem.getTypeIndices();
-            for(int i = 0;i < typeIndices.size();i++) {
-                if(searchFragment.typeList != null) {
-                    int typeIndex = typeIndices.get(i);
-                    if(searchFragment.typeList.get(0).equals("none")) {
-                        typeIndex++;
+            //keep a local strong reference, dont keep global reference
+            PokemonSearchFragment localSearchFragment = searchFragment.get();
+            if(localSearchFragment != null) {
+                ArrayList<Integer> typeIndices = dataItem.getTypeIndices();
+                for (int i = 0; i < typeIndices.size(); i++) {
+                    if (localSearchFragment.typeList != null) {
+                        int typeIndex = typeIndices.get(i);
+                        if (localSearchFragment.typeList.get(0).equals("none")) {
+                            typeIndex++;
+                        }
+                        typeText[i].setText(localSearchFragment.typeList.get(typeIndex));
                     }
-                    typeText[i].setText(searchFragment.typeList.get(typeIndex));
                 }
             }
             hpText.setText(String.valueOf(dataItem.getHP()));
@@ -100,7 +105,8 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
 
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                searchFragment.adapter.notifyDataSetChanged();
+                if(searchFragment.get() != null)
+                    searchFragment.get().adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -111,7 +117,7 @@ public class PokemonSearchListViewAdapter extends ArrayAdapter<SearchPokemonInfo
     }
 
     public void releaseAll() {
-        ViewHolder.searchFragment = null;
+        mInflater = null;
     }
 
 }
