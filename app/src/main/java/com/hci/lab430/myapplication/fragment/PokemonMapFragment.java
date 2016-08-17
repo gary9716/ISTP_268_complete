@@ -264,6 +264,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
                                 .title("gym")
                                 .snippet("owned by Team " + gym_types[teamId])
                 );
+
                 //load image with url
                 ImageLoader.getInstance().loadImage(PGMapDataManager.ImgServerAddr + "/forts/" + gym_types[teamId] + ".png",
                         new SetMapMarkerWithBitmapLoadedFromUrl(marker,2));

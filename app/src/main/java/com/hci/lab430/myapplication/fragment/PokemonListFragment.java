@@ -170,7 +170,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
                 for(OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
                     removePokemonInfo(owningPokemonInfo);
                 }
-                adapter.selectedPokemons.clear();
+                clearSelectedPokemons();
             } else if (which == AlertDialog.BUTTON_NEGATIVE) {
                 Toast.makeText(activity, "取消丟棄", Toast.LENGTH_SHORT).show();
             }
@@ -240,8 +240,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
                 handler.postDelayed(startHealingEffect, 1000);
             }
             else {
-                adapter.selectedPokemons.clear();
-                setMenuVisibility(false);
+                clearSelectedPokemons();
             }
             return true;
         }
@@ -250,8 +249,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
                 owningPokemonInfo.setLevel(owningPokemonInfo.getLevel() + 1);
                 owningPokemonInfo.isSelected = false;
             }
-            adapter.selectedPokemons.clear();
             adapter.notifyDataSetChanged();
+            clearSelectedPokemons();
 
             return true;
         }
@@ -268,13 +267,18 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
                 owningPokemonInfo.isHealing = true;
             }
             adapter.notifyDataSetChanged();
-            adapter.selectedPokemons.clear();
-            setMenuVisibility(false);
+            clearSelectedPokemons();
         }
     };
 
     @Override
     public void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter) {
+        getActivity().invalidateOptionsMenu();
+    }
+
+
+    private void clearSelectedPokemons() {
+        adapter.selectedPokemons.clear();
         getActivity().invalidateOptionsMenu();
     }
 

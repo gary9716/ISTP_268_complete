@@ -173,17 +173,41 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
     }
 
     public String[] getSkill() {
+        if(!skillHaveBeenInited) {
+            skillHaveBeenInited = true;
+            this.skill = readSkillFromParseStorage();
+        }
+        else if(skillHaveBeenModified) {
+            skillHaveBeenModified = false;
+            this.skill = readSkillFromParseStorage();
+        }
         return this.skill;
     }
+
+    private String[] readSkillFromParseStorage() {
+        ArrayList<String> skillList = (ArrayList)get(skillKey);
+        String[] skillArray = new String[maxNumSkills];
+        if(skillList != null) {
+            for (int i = 0; i < skillList.size(); i++) {
+                skillArray[i] = skillList.get(i);
+            }
+        }
+        return skillArray;
+    }
+
+    private boolean skillHaveBeenInited = false;
+    private boolean skillHaveBeenModified = false;
 
     public void setSkill(String[] skill) {
         ArrayList<String> skillList = new ArrayList<>(skill.length);
         for(String skillName : skill) {
-            skillList.add(skillName);
+            if(skillName != null)
+                skillList.add(skillName);
         }
         put(skillKey, skillList);
 
         this.skill = skill;
+        skillHaveBeenModified = true;
     }
 
     public static ParseQuery<OwningPokemonInfo> getQuery() {

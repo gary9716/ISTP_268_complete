@@ -94,9 +94,11 @@ public class OwningPokemonDataManager {
         owningPokemonInfo.setType_1(Integer.valueOf(dataFields[6]));
         owningPokemonInfo.setType_2(Integer.valueOf(dataFields[7]));
         //if strings are not enough, rest of array index would point to null.
+        String[] skills = new String[OwningPokemonInfo.maxNumSkills];
         for(int i = skill_startIndex;i < dataFields.length;i++) {
-            owningPokemonInfo.getSkill()[i - skill_startIndex] = dataFields[i];
+            skills[i - skill_startIndex] = dataFields[i];
         }
+        owningPokemonInfo.setSkill(skills);
 
         return owningPokemonInfo;
     }

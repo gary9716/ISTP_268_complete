@@ -25,7 +25,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.1.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
-    compile 'com.android.support:design:24.1.1'
     compile('com.mikepenz:materialdrawer:5.3.6@aar') {
         transitive = true
     }
@@ -34,9 +33,7 @@ dependencies {
     compile 'com.mikepenz:fontawesome-typeface:4.4.0.1@aar'
     compile 'com.mikepenz:octicons-typeface:3.0.0.1@aar'
     compile 'com.parse:parse-android:1.13.1'
-    compile 'com.parse.bolts:bolts-android:1.4.0'
     compile 'com.parse:parseui-widget-android:0.0.1'
-    compile 'com.getbase:floatingactionbutton:1.10.1'
     compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile 'com.parse:parsefacebookutils-v4-android:1.10.3@aar'
