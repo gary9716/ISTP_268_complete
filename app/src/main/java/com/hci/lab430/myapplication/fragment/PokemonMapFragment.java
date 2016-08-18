@@ -65,17 +65,17 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
 
     public final static int ACCESS_FINE_LOCATION_REQUEST_CODE = 1;
 
+    View fragmentView;
+    MapFragment mapFragment;
+
+    PGMapDataManager mapDataManager;
+    final String[] gym_types = {"Uncontested", "Mystic", "Valor", "Instinct"};
+
     GoogleMap map;
     LatLng currentLocation = null;
     GoogleApiClient googleApiClient;
     LocationRequest locationRequest;
-
-    View fragmentView;
-    MapFragment mapFragment;
     BitmapDescriptor selectedBitmapDescriptor = null;
-
-    PGMapDataManager mapDataManager;
-    final String[] gym_types = {"Uncontested", "Mystic", "Valor", "Instinct"};
 
     private boolean markerSelectingMode = false;
     ArrayList<Marker> currentMarkers = new ArrayList<>();
@@ -83,8 +83,8 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     Polyline polyline;
 
     private AlertDialog routingDialog;
-
-
+    Routing currentRoute = null;
+    
     public static PokemonMapFragment newInstance() {
 
         Bundle args = new Bundle();
@@ -160,6 +160,16 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     }
 
     @Override
+    public void callbackWithGeoCodingResult(LatLng latLng) {
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+        MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("NTU").snippet("National Taiwan University");
+        map.moveCamera(cameraUpdate);
+        map.addMarker(markerOptions);
+
+        createGoogleApiClient();
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
         map.setOnMarkerClickListener(this);
@@ -174,30 +184,17 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         (new GeoCodingTask(PokemonMapFragment.this)).execute("台北市羅斯福路四段一號");
     }
 
-    @Override
-    public void callbackWithGeoCodingResult(LatLng latLng) {
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("NTU").snippet("National Taiwan University");
-        map.moveCamera(cameraUpdate);
-        map.addMarker(markerOptions);
-
-        createGoogleApiClient();
-    }
-
     private void createGoogleApiClient()
     {
-        if(googleApiClient == null)
-        {
+        if(googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(getActivity())
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
             googleApiClient.connect();
-
         }
     }
-
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -234,6 +231,13 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
+    }
+
+    public void requestLocationPermission (int requestCode){
+        //below this version we only need to specify it in AndroidManifest
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, requestCode);
+        }
     }
 
     private void removePolylinePointsBaseOnLocation(Location location) {
@@ -287,12 +291,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         removePolylinePointsBaseOnLocation(location);
     }
 
-    public void requestLocationPermission (int requestCode){
-        //below this version we only need to specify it in AndroidManifest
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, requestCode);
-        }
-    }
 
     public void requestLocationUpdateService() {
         if(locationRequest == null) {
@@ -358,113 +356,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         }
         else
             return false;
-    }
-
-    Routing currentRoute = null;
-
-    private void doRouting(LatLng startLoc) {
-
-        ArrayList<LatLng> routingLocations = new ArrayList<>();
-        for(Marker marker : routingMarkers) {
-            routingLocations.add(marker.getPosition());
-        }
-
-        if(startLoc != null)
-            routingLocations.add(0, startLoc);
-
-        //delete previous route
-        if(currentRoute != null) {
-            currentRoute.cancel(true);
-            currentRoute = null;
-        }
-
-        if(polyline != null) {
-            polyline.remove();
-            polyline = null;
-        }
-
-        currentRoute = new Routing.Builder()
-                .travelMode(Routing.TravelMode.WALKING)
-                .withListener(this)
-                .waypoints(routingLocations)
-                .build();
-
-        currentRoute.execute();
-    }
-
-    @Override
-    public void onRoutingFailure(RouteException e) {
-
-    }
-
-    @Override
-    public void onRoutingStart() {
-
-    }
-
-    @Override
-    public void onRoutingSuccess(ArrayList<Route> arrayList, int i) {
-        Route route = arrayList.get(i);
-
-        List<LatLng> points = route.getPoints();
-
-        PolylineOptions polylineOptions = new PolylineOptions();
-
-        polylineOptions.addAll(points);
-
-        polylineOptions.color(Color.GREEN);
-        polylineOptions.width(10);
-
-        polyline = map.addPolyline(polylineOptions);
-
-    }
-
-    @Override
-    public void onRoutingCancelled() {
-
-    }
-
-    @Override
-    public void onClick(DialogInterface dialogInterface, int which) {
-        if(which == AlertDialog.BUTTON_POSITIVE) {
-            doRouting(currentLocation);
-        }
-    }
-
-    private class SetMapMarkerWithBitmapLoadedFromUrl implements ImageLoadingListener{
-
-        private Marker markerToSet;
-        private float mImgScale;
-
-        public SetMapMarkerWithBitmapLoadedFromUrl(Marker marker, float imgScale) {
-            markerToSet = marker;
-            mImgScale = imgScale;
-        }
-
-        @Override
-        public void onLoadingStarted(String imageUri, View view) {
-
-        }
-
-        @Override
-        public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-
-        }
-
-        @Override
-        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(loadedImage, (int)(loadedImage.getWidth() * mImgScale), (int)(loadedImage.getHeight() * mImgScale), false);
-            BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(scaledBitmap);
-            MarkerExtraInfo extraInfo = (MarkerExtraInfo)markerToSet.getTag();
-            extraInfo.originalIconDescriptor = descriptor;
-            if(!extraInfo.isSelected) //not in selected state
-                markerToSet.setIcon(extraInfo.originalIconDescriptor);
-        }
-
-        @Override
-        public void onLoadingCancelled(String imageUri, View view) {
-
-        }
     }
 
     private Marker tryToFindExistedMarker(String markerId) {
@@ -578,6 +469,117 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         }
 
         removeOutdatedMarkers(reservedMarkers);
+    }
+
+    private class SetMapMarkerWithBitmapLoadedFromUrl implements ImageLoadingListener{
+
+        private Marker markerToSet;
+        private float mImgScale;
+
+        public SetMapMarkerWithBitmapLoadedFromUrl(Marker marker, float imgScale) {
+            markerToSet = marker;
+            mImgScale = imgScale;
+        }
+
+        @Override
+        public void onLoadingStarted(String imageUri, View view) {
+
+        }
+
+        @Override
+        public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+
+        }
+
+        @Override
+        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(loadedImage, (int)(loadedImage.getWidth() * mImgScale), (int)(loadedImage.getHeight() * mImgScale), false);
+            BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(scaledBitmap);
+            MarkerExtraInfo extraInfo = (MarkerExtraInfo)markerToSet.getTag();
+            extraInfo.originalIconDescriptor = descriptor;
+            if(!extraInfo.isSelected) //not in selected state
+                markerToSet.setIcon(extraInfo.originalIconDescriptor);
+        }
+
+        @Override
+        public void onLoadingCancelled(String imageUri, View view) {
+
+        }
+    }
+
+
+
+
+
+
+
+    private void doRouting(LatLng startLoc) {
+
+        ArrayList<LatLng> routingLocations = new ArrayList<>();
+        for(Marker marker : routingMarkers) {
+            routingLocations.add(marker.getPosition());
+        }
+
+        if(startLoc != null)
+            routingLocations.add(0, startLoc);
+
+        //delete previous route
+        if(currentRoute != null) {
+            currentRoute.cancel(true);
+            currentRoute = null;
+        }
+
+        if(polyline != null) {
+            polyline.remove();
+            polyline = null;
+        }
+
+        currentRoute = new Routing.Builder()
+                .travelMode(Routing.TravelMode.WALKING)
+                .withListener(this)
+                .waypoints(routingLocations)
+                .build();
+
+        currentRoute.execute();
+    }
+
+    @Override
+    public void onRoutingFailure(RouteException e) {
+
+    }
+
+    @Override
+    public void onRoutingStart() {
+
+    }
+
+    @Override
+    public void onRoutingSuccess(ArrayList<Route> arrayList, int i) {
+        Route route = arrayList.get(i);
+
+        List<LatLng> points = route.getPoints();
+
+        PolylineOptions polylineOptions = new PolylineOptions();
+
+        polylineOptions.addAll(points);
+
+        polylineOptions.color(Color.GREEN);
+        polylineOptions.width(10);
+
+        polyline = map.addPolyline(polylineOptions);
+
+    }
+
+    @Override
+    public void onRoutingCancelled() {
+
+    }
+
+    @Override
+    public void onClick(DialogInterface dialogInterface, int which) {
+        if(which == AlertDialog.BUTTON_POSITIVE) {
+            doRouting(currentLocation);
+        }
     }
 
     //memory management
