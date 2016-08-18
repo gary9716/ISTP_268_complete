@@ -84,7 +84,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
 
     private AlertDialog routingDialog;
     Routing currentRoute = null;
-    
+
     public static PokemonMapFragment newInstance() {
 
         Bundle args = new Bundle();
@@ -125,7 +125,11 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        getChildFragmentManager().beginTransaction().replace(R.id.childFragmentContainer, mapFragment).commit();
+
+        getChildFragmentManager().beginTransaction()
+                .replace(R.id.childFragmentContainer, mapFragment)
+                .commit();
+
     }
 
     @Override
@@ -162,7 +166,10 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Override
     public void callbackWithGeoCodingResult(LatLng latLng) {
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("NTU").snippet("National Taiwan University");
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(latLng)
+                .title("NTU")
+                .snippet("National Taiwan University");
         map.moveCamera(cameraUpdate);
         map.addMarker(markerOptions);
 
@@ -203,10 +210,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
                 != PackageManager.PERMISSION_GRANTED) {
             requestLocationPermission(ACCESS_FINE_LOCATION_REQUEST_CODE);
         }
-        else {
-            requestLocationUpdateService();
-            setMyLocationButtonEnabled();
-        }
 
     }
 
@@ -240,44 +243,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         }
     }
 
-    private void removePolylinePointsBaseOnLocation(Location location) {
-        List<LatLng> points = polyline.getPoints();
-
-        int index = -1;
-
-        for(int i=0; i < points.size();i ++)
-        {
-            if(i < points.size() -1)
-            {
-                LatLng point1 = points.get(i);
-                LatLng point2 =  points.get(i+1);
-                double offset = 0.0001;
-
-                Double maxLat = Math.max(point1.latitude, point2.latitude) + offset;
-                Double maxLng = Math.max(point1.longitude, point2.longitude) + offset;
-                Double minLat = Math.min(point1.latitude, point2.latitude) - offset;
-                Double minLng = Math.min(point1.longitude, point2.longitude) - offset;
-                if(location.getLatitude() >= minLat && location.getLatitude() <= maxLat && location.getLongitude() >= minLng && location.getLongitude() <= maxLng)
-                {
-                    index = i;
-                    break;
-                }
-            }
-        }
-
-        if(index != -1)
-        {
-            for (int i = index - 1;i >= 0;i--) {
-                points.remove(0);
-            }
-            points.set(0, new LatLng(location.getLatitude(), location.getLongitude()));
-            polyline.setPoints(points);
-        }
-        else {
-            //refresh polyline
-            doRouting(currentLocation);
-        }
-    }
 
     @Override
     public void onLocationChanged(Location location) {
@@ -578,6 +543,46 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Override
     public void onClick(DialogInterface dialogInterface, int which) {
         if(which == AlertDialog.BUTTON_POSITIVE) {
+            doRouting(currentLocation);
+        }
+    }
+
+
+    private void removePolylinePointsBaseOnLocation(Location location) {
+        List<LatLng> points = polyline.getPoints();
+
+        int index = -1;
+
+        for(int i=0; i < points.size();i ++)
+        {
+            if(i < points.size() -1)
+            {
+                LatLng point1 = points.get(i);
+                LatLng point2 =  points.get(i+1);
+                double offset = 0.0001;
+
+                Double maxLat = Math.max(point1.latitude, point2.latitude) + offset;
+                Double maxLng = Math.max(point1.longitude, point2.longitude) + offset;
+                Double minLat = Math.min(point1.latitude, point2.latitude) - offset;
+                Double minLng = Math.min(point1.longitude, point2.longitude) - offset;
+                if(location.getLatitude() >= minLat && location.getLatitude() <= maxLat && location.getLongitude() >= minLng && location.getLongitude() <= maxLng)
+                {
+                    index = i;
+                    break;
+                }
+            }
+        }
+
+        if(index != -1)
+        {
+            for (int i = index - 1;i >= 0;i--) {
+                points.remove(0);
+            }
+            points.set(0, new LatLng(location.getLatitude(), location.getLongitude()));
+            polyline.setPoints(points);
+        }
+        else {
+            //refresh polyline
             doRouting(currentLocation);
         }
     }
