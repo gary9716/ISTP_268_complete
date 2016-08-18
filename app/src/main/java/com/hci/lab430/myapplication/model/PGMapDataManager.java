@@ -33,10 +33,11 @@ public class PGMapDataManager implements Callback {
     OkHttpClient okHttpClient;
     Call currentCall = null;
     Handler uiThreadHandler;
-    int updateCycleInSecs;
+    int mUpdateCycleInSecs;
 
     public PGMapDataManager(Context context, int updateCycleInSecs) {
-        this.updateCycleInSecs = updateCycleInSecs;
+
+        mUpdateCycleInSecs = updateCycleInSecs;
 
         okHttpClient = new OkHttpClient();
         okHttpClient.setConnectTimeout(30, TimeUnit.SECONDS);
@@ -44,6 +45,11 @@ public class PGMapDataManager implements Callback {
 
         uiThreadHandler = new Handler(context.getMainLooper());
         uiThreadHandler.post(issueHttpTask);
+    }
+
+    public void updateData(int updateAfterSecs) {
+        uiThreadHandler.postDelayed(issueHttpTask, updateAfterSecs * 1000);
+
     }
 
     Runnable issueHttpTask = new Runnable() {
@@ -60,12 +66,13 @@ public class PGMapDataManager implements Callback {
 
                 if(!currentCall.isExecuted())
                     currentCall.execute();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            if(updateCycleInSecs > 0)
-                uiThreadHandler.postDelayed(issueHttpTask, updateCycleInSecs * 1000);
+            if(mUpdateCycleInSecs > 0)
+                updateData(mUpdateCycleInSecs);
         }
     };
 

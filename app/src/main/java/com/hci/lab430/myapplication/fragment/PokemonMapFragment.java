@@ -1,15 +1,26 @@
 package com.hci.lab430.myapplication.fragment;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.directions.route.Route;
+import com.directions.route.RouteException;
+import com.directions.route.Routing;
+import com.directions.route.RoutingListener;
 import com.google.android.gms.location.LocationListener;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
@@ -24,12 +35,16 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.hci.lab430.myapplication.GeoCodingTask;
 import com.hci.lab430.myapplication.R;
+import com.hci.lab430.myapplication.model.MarkerExtraInfo;
 import com.hci.lab430.myapplication.model.PGMapDataManager;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
@@ -39,23 +54,36 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 /**
  * Created by lab430 on 16/8/15.
  */
-public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallback, GeoCodingTask.GeoCodingResponse, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, PGMapDataManager.DataChangedListener{
+public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallback, GeoCodingTask.GeoCodingResponse, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, PGMapDataManager.DataChangedListener, GoogleMap.OnMarkerClickListener, RoutingListener, DialogInterface.OnClickListener{
 
     public final static int ACCESS_FINE_LOCATION_REQUEST_CODE = 1;
 
     GoogleMap map;
-//    LatLng storeLocation;
+    LatLng currentLocation = null;
     GoogleApiClient googleApiClient;
     LocationRequest locationRequest;
 
     View fragmentView;
     MapFragment mapFragment;
+    BitmapDescriptor selectedBitmapDescriptor = null;
 
     PGMapDataManager mapDataManager;
     final String[] gym_types = {"Uncontested", "Mystic", "Valor", "Instinct"};
+
+    private boolean markerSelectingMode = false;
+    ArrayList<Marker> currentMarkers = new ArrayList<>();
+    ArrayList<Marker> routingMarkers = new ArrayList<>();
+    Polyline polyline;
+
+    private AlertDialog routingDialog;
+
 
     public static PokemonMapFragment newInstance() {
 
@@ -72,6 +100,12 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         super.onCreate(savedInstanceState);
         mapDataManager = new PGMapDataManager(getActivity(), 15);
         mapDataManager.dataChangedListener = this;
+
+        routingDialog = new AlertDialog.Builder(getActivity())
+                .setMessage("按下確認後會開始規劃路線")
+                .setNegativeButton("取消", this)
+                .setPositiveButton("確認",this)
+                .create();
     }
 
     //here I demo how to nest a fragment inside anther fragment
@@ -82,6 +116,8 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
             fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
             mapFragment = MapFragment.newInstance();
             mapFragment.getMapAsync(this);
+            setHasOptionsMenu(true);
+            setMenuVisibility(true);
         }
         return fragmentView;
     }
@@ -93,12 +129,47 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.map_menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if(itemId == R.id.action_routing) {
+            routingDialog.show();
+            return true;
+        }
+        else if(itemId == R.id.action_selecting_mode_switch) {
+            markerSelectingMode = !markerSelectingMode;
+            if(markerSelectingMode) { //become selecting mode
+                item.setTitle("一般模式");
+            }
+            else {
+                //recover all routing markers
+                for(Marker marker : routingMarkers) {
+                    changeMarkerSelectedState(marker);
+                }
+                routingMarkers.clear();
+                item.setTitle("選取模式");
+            }
+            return true;
+        }
+        else
+            return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
+        map.setOnMarkerClickListener(this);
+
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.pokemon_selected_marker);
+        bitmap = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth() * 0.2f), (int)(bitmap.getHeight() * 0.2f), false);
+        selectedBitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
 
         UiSettings mapUISettings = googleMap.getUiSettings();
         mapUISettings.setZoomControlsEnabled(true);
-        mapUISettings.setZoomGesturesEnabled(true);
 
         (new GeoCodingTask(PokemonMapFragment.this)).execute("台北市羅斯福路四段一號");
     }
@@ -109,6 +180,8 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("NTU").snippet("National Taiwan University");
         map.moveCamera(cameraUpdate);
         map.addMarker(markerOptions);
+
+        createGoogleApiClient();
     }
 
     private void createGoogleApiClient()
@@ -163,10 +236,55 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
 
     }
 
+    private void removePolylinePointsBaseOnLocation(Location location) {
+        List<LatLng> points = polyline.getPoints();
+
+        int index = -1;
+
+        for(int i=0; i < points.size();i ++)
+        {
+            if(i < points.size() -1)
+            {
+                LatLng point1 = points.get(i);
+                LatLng point2 =  points.get(i+1);
+                double offset = 0.0001;
+
+                Double maxLat = Math.max(point1.latitude, point2.latitude) + offset;
+                Double maxLng = Math.max(point1.longitude, point2.longitude) + offset;
+                Double minLat = Math.min(point1.latitude, point2.latitude) - offset;
+                Double minLng = Math.min(point1.longitude, point2.longitude) - offset;
+                if(location.getLatitude() >= minLat && location.getLatitude() <= maxLat && location.getLongitude() >= minLng && location.getLongitude() <= maxLng)
+                {
+                    index = i;
+                    break;
+                }
+            }
+        }
+
+        if(index != -1)
+        {
+            for (int i = index - 1;i >= 0;i--) {
+                points.remove(0);
+            }
+            points.set(0, new LatLng(location.getLatitude(), location.getLongitude()));
+            polyline.setPoints(points);
+        }
+        else {
+            //refresh polyline
+            doRouting(currentLocation);
+        }
+    }
 
     @Override
     public void onLocationChanged(Location location) {
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
+        if(location != null)
+            currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+        if(polyline == null) {
+            return;
+        }
+
+        removePolylinePointsBaseOnLocation(location);
     }
 
     public void requestLocationPermission (int requestCode){
@@ -179,12 +297,14 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     public void requestLocationUpdateService() {
         if(locationRequest == null) {
             locationRequest = new LocationRequest();
-            locationRequest.setInterval(1000);
+            locationRequest.setInterval(5000);
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         }
 
         Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        if(location != null)
+            currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
     }
 
     public void setMyLocationButtonEnabled() {
@@ -207,6 +327,107 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    private void changeMarkerSelectedState(Marker marker) {
+        MarkerExtraInfo extraInfo = (MarkerExtraInfo)marker.getTag();
+        extraInfo.isSelected = !extraInfo.isSelected;
+        if (extraInfo.isSelected) { //become selected
+            marker.setIcon(selectedBitmapDescriptor);
+        } else {
+            marker.setIcon(extraInfo.originalIconDescriptor);
+        }
+    }
+
+    private boolean isMarkerSelected(Marker marker) {
+        return ((MarkerExtraInfo)marker.getTag()).isSelected;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if(markerSelectingMode) {
+            changeMarkerSelectedState(marker);
+            if(isMarkerSelected(marker)) {
+                routingMarkers.add(marker);
+            }
+            else {
+                routingMarkers.remove(marker);
+            }
+            return true;
+        }
+        else
+            return false;
+    }
+
+    Routing currentRoute = null;
+
+    private void doRouting(LatLng startLoc) {
+
+        ArrayList<LatLng> routingLocations = new ArrayList<>();
+        for(Marker marker : routingMarkers) {
+            routingLocations.add(marker.getPosition());
+        }
+
+        if(startLoc != null)
+            routingLocations.add(0, startLoc);
+
+        //delete previous route
+        if(currentRoute != null) {
+            currentRoute.cancel(true);
+            currentRoute = null;
+        }
+
+        if(polyline != null) {
+            polyline.remove();
+            polyline = null;
+        }
+
+        currentRoute = new Routing.Builder()
+                .travelMode(Routing.TravelMode.WALKING)
+                .withListener(this)
+                .waypoints(routingLocations)
+                .build();
+
+        currentRoute.execute();
+    }
+
+    @Override
+    public void onRoutingFailure(RouteException e) {
+
+    }
+
+    @Override
+    public void onRoutingStart() {
+
+    }
+
+    @Override
+    public void onRoutingSuccess(ArrayList<Route> arrayList, int i) {
+        Route route = arrayList.get(i);
+
+        List<LatLng> points = route.getPoints();
+
+        PolylineOptions polylineOptions = new PolylineOptions();
+
+        polylineOptions.addAll(points);
+
+        polylineOptions.color(Color.GREEN);
+        polylineOptions.width(10);
+
+        polyline = map.addPolyline(polylineOptions);
+
+    }
+
+    @Override
+    public void onRoutingCancelled() {
+
+    }
+
+    @Override
+    public void onClick(DialogInterface dialogInterface, int which) {
+        if(which == AlertDialog.BUTTON_POSITIVE) {
+            doRouting(currentLocation);
         }
     }
 
@@ -233,7 +454,11 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         @Override
         public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
             Bitmap scaledBitmap = Bitmap.createScaledBitmap(loadedImage, (int)(loadedImage.getWidth() * mImgScale), (int)(loadedImage.getHeight() * mImgScale), false);
-            markerToSet.setIcon(BitmapDescriptorFactory.fromBitmap(scaledBitmap));
+            BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(scaledBitmap);
+            MarkerExtraInfo extraInfo = (MarkerExtraInfo)markerToSet.getTag();
+            extraInfo.originalIconDescriptor = descriptor;
+            if(!extraInfo.isSelected) //not in selected state
+                markerToSet.setIcon(extraInfo.originalIconDescriptor);
         }
 
         @Override
@@ -242,33 +467,79 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         }
     }
 
+    private Marker tryToFindExistedMarker(String markerId) {
+        for(Marker currentMarker : currentMarkers) {
+            if(((MarkerExtraInfo)currentMarker.getTag()).markerId.equals(markerId)) {
+                return currentMarker;
+            }
+        }
+
+        return null;
+    }
+
+    private void removeOutdatedMarkers(HashSet<Marker> reservedMarkers) {
+        boolean needToUpdateRoute = false;
+        for(Marker marker : currentMarkers) {
+            if(!reservedMarkers.contains(marker)) {
+                marker.remove();
+                if(routingMarkers.remove(marker)) {
+                    needToUpdateRoute = true;
+                }
+
+            }
+        }
+
+        if(needToUpdateRoute) {
+            doRouting(currentLocation);
+        }
+
+        currentMarkers = new ArrayList<>(reservedMarkers);
+    }
+
     @Override
     public void onData(JSONObject jsonObject) {
-        //parse jsonObj
-        Log.d("onData", "test");
-        if(map == null)
+        if(map == null) {
             return;
+        }
 
-        map.clear();
+        HashSet<Marker> reservedMarkers = new HashSet<>();
+
         try {
             JSONArray gymObjs = jsonObject.getJSONArray("gyms");
-            //"keys:"
-            //"guard_pokemon_id"
-            //"team_id"
             for(int i = 0;i < gymObjs.length();i++) {
                 JSONObject gymObj = gymObjs.getJSONObject(i);
+
                 int teamId = gymObj.getInt("team_id");
-                Marker marker = map.addMarker(new MarkerOptions()
-                                .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                                .position(getLocDataFromJsonObj(gymObj))
-                                .title("gym")
-                                .snippet("owned by Team " + gym_types[teamId])
-                );
+                String markerId = gymObj.getString("gym_id");
+
+                Marker marker = tryToFindExistedMarker(markerId);
+
+                if(marker != null) {
+                    //update info
+                    marker.setPosition(getLocDataFromJsonObj(gymObj));
+                    marker.setSnippet("owned by Team " + gym_types[teamId]);
+                }
+                else {
+                    MarkerExtraInfo extraInfo = new MarkerExtraInfo();
+                    extraInfo.isSelected = false;
+                    extraInfo.markerId = markerId;
+                    marker = map.addMarker(new MarkerOptions()
+                                    .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+                                    .position(getLocDataFromJsonObj(gymObj))
+                                    .title("gym")
+                                    .snippet("owned by Team " + gym_types[teamId])
+                    );
+                    marker.setTag(extraInfo);
+                }
+                reservedMarkers.add(marker);
 
                 //load image with url
-                ImageLoader.getInstance().loadImage(PGMapDataManager.ImgServerAddr + "/forts/" + gym_types[teamId] + ".png",
-                        new SetMapMarkerWithBitmapLoadedFromUrl(marker,2));
+                ImageLoader.getInstance().loadImage(
+                        PGMapDataManager.ImgServerAddr + "/forts/" + gym_types[teamId] + ".png",
+                        new SetMapMarkerWithBitmapLoadedFromUrl(marker,2)
+                );
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -277,21 +548,36 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
             JSONArray pokemonObjs = jsonObject.getJSONArray("pokemons");
             for(int i = 0;i < pokemonObjs.length();i++) {
                 JSONObject pokemonObj = pokemonObjs.getJSONObject(i);
-                //keys:
-                //"pokemon_id"
-                //"pokemon_name"
-                Marker marker = map.addMarker(new MarkerOptions()
-                                .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-                                .position(getLocDataFromJsonObj(pokemonObj))
-                                .title(pokemonObj.getString("pokemon_name"))
+                String markerId = pokemonObj.getString("encounter_id");
+
+                Marker marker = tryToFindExistedMarker(markerId);
+                if(marker != null) {
+                    //update info
+                    marker.setPosition(getLocDataFromJsonObj(pokemonObj));
+                }
+                else {
+                    MarkerExtraInfo extraInfo = new MarkerExtraInfo();
+                    extraInfo.isSelected = false;
+                    extraInfo.markerId = markerId;
+                    marker = map.addMarker(new MarkerOptions()
+                                    .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+                                    .position(getLocDataFromJsonObj(pokemonObj))
+                                    .title(pokemonObj.getString("pokemon_name"))
+                    );
+                    marker.setTag(extraInfo);
+                }
+                reservedMarkers.add(marker);
+
+                ImageLoader.getInstance().loadImage(
+                        PGMapDataManager.ImgServerAddr + "/icons/" + pokemonObj.getInt("pokemon_id") + ".png" ,
+                        new SetMapMarkerWithBitmapLoadedFromUrl(marker,1)
                 );
-                ImageLoader.getInstance().loadImage(PGMapDataManager.ImgServerAddr + "/icons/" + pokemonObj.getInt("pokemon_id") + ".png" ,
-                        new SetMapMarkerWithBitmapLoadedFromUrl(marker,1));
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+        removeOutdatedMarkers(reservedMarkers);
     }
 
     //memory management
