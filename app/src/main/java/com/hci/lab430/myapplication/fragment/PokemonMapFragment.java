@@ -1,12 +1,9 @@
 package com.hci.lab430.myapplication.fragment;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -17,10 +14,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.directions.route.Route;
-import com.directions.route.RouteException;
-import com.directions.route.Routing;
-import com.directions.route.RoutingListener;
 import com.google.android.gms.location.LocationListener;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
@@ -40,8 +33,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.hci.lab430.myapplication.GeoCodingTask;
 import com.hci.lab430.myapplication.R;
 import com.hci.lab430.myapplication.model.MarkerExtraInfo;
@@ -56,12 +47,11 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 /**
  * Created by lab430 on 16/8/15.
  */
-public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallback, GeoCodingTask.GeoCodingResponse, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, PGMapDataManager.DataChangedListener, GoogleMap.OnMarkerClickListener, RoutingListener, DialogInterface.OnClickListener{
+public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallback, GeoCodingTask.GeoCodingResponse, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, PGMapDataManager.DataChangedListener, GoogleMap.OnMarkerClickListener{
 
     public final static int ACCESS_FINE_LOCATION_REQUEST_CODE = 1;
 
@@ -79,11 +69,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
 
     private boolean markerSelectingMode = false;
     ArrayList<Marker> currentMarkers = new ArrayList<>();
-    ArrayList<Marker> routingMarkers = new ArrayList<>();
-    Polyline polyline;
-
-    private AlertDialog routingDialog;
-    Routing currentRoute = null;
+    ArrayList<Marker> selectedMarkers = new ArrayList<>();
 
     public static PokemonMapFragment newInstance() {
 
@@ -101,11 +87,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         mapDataManager = new PGMapDataManager(getActivity(), 15);
         mapDataManager.dataChangedListener = this;
 
-        routingDialog = new AlertDialog.Builder(getActivity())
-                .setMessage("按下確認後會開始規劃路線")
-                .setNegativeButton("取消", this)
-                .setPositiveButton("確認",this)
-                .create();
     }
 
     //here I demo how to nest a fragment inside anther fragment
@@ -119,6 +100,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
             setHasOptionsMenu(true);
             setMenuVisibility(true);
         }
+
         return fragmentView;
     }
 
@@ -126,6 +108,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        //if we want to nest a fragment inside a fragment, we should use ChildFragmentManager instead of FragmentManager
         getChildFragmentManager().beginTransaction()
                 .replace(R.id.childFragmentContainer, mapFragment)
                 .commit();
@@ -140,21 +123,17 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        if(itemId == R.id.action_routing) {
-            routingDialog.show();
-            return true;
-        }
-        else if(itemId == R.id.action_selecting_mode_switch) {
+        if(itemId == R.id.action_selecting_mode_switch) {
             markerSelectingMode = !markerSelectingMode;
             if(markerSelectingMode) { //become selecting mode
                 item.setTitle("一般模式");
             }
             else {
                 //recover all routing markers
-                for(Marker marker : routingMarkers) {
+                for(Marker marker : selectedMarkers) {
                     changeMarkerSelectedState(marker);
                 }
-                routingMarkers.clear();
+                selectedMarkers.clear();
                 item.setTitle("選取模式");
             }
             return true;
@@ -181,6 +160,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         map = googleMap;
         map.setOnMarkerClickListener(this);
 
+        //switch the image of a marker to this image if user click a marker
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.pokemon_selected_marker);
         bitmap = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth() * 0.2f), (int)(bitmap.getHeight() * 0.2f), false);
         selectedBitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
@@ -203,12 +183,20 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         }
     }
 
+    private void doAfterPermissionGranted() {
+        requestLocationUpdateService();
+        setMyLocationButtonEnabled();
+    }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             requestLocationPermission(ACCESS_FINE_LOCATION_REQUEST_CODE);
+        }
+        else {
+            doAfterPermissionGranted();
         }
 
     }
@@ -220,8 +208,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         {
             if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
             {
-                requestLocationUpdateService();
-                setMyLocationButtonEnabled();
+                doAfterPermissionGranted();
             }
         }
     }
@@ -249,11 +236,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         if(location != null)
             currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
-        if(polyline == null) {
-            return;
-        }
-
-        removePolylinePointsBaseOnLocation(location);
     }
 
 
@@ -264,10 +246,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         }
-
-        Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-        if(location != null)
-            currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
     }
 
     public void setMyLocationButtonEnabled() {
@@ -277,6 +255,8 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         // First verify that the location permission has been granted.
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            //these two operations need to be wrapped by this conditional statement
+            //otherwise there would be a exception warning.
             map.getUiSettings().setMyLocationButtonEnabled(true);
             map.setMyLocationEnabled(true);
         } else {
@@ -312,17 +292,19 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         if(markerSelectingMode) {
             changeMarkerSelectedState(marker);
             if(isMarkerSelected(marker)) {
-                routingMarkers.add(marker);
+                selectedMarkers.add(marker);
             }
             else {
-                routingMarkers.remove(marker);
+                selectedMarkers.remove(marker);
             }
-            return true;
+
+            return true; //disable default behaviour
         }
         else
             return false;
     }
 
+    //we would use certain data like id to find and update old marker.
     private Marker tryToFindExistedMarker(String markerId) {
         for(Marker currentMarker : currentMarkers) {
             if(((MarkerExtraInfo)currentMarker.getTag()).markerId.equals(markerId)) {
@@ -334,19 +316,11 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     }
 
     private void removeOutdatedMarkers(HashSet<Marker> reservedMarkers) {
-        boolean needToUpdateRoute = false;
         for(Marker marker : currentMarkers) {
             if(!reservedMarkers.contains(marker)) {
                 marker.remove();
-                if(routingMarkers.remove(marker)) {
-                    needToUpdateRoute = true;
-                }
 
             }
-        }
-
-        if(needToUpdateRoute) {
-            doRouting(currentLocation);
         }
 
         currentMarkers = new ArrayList<>(reservedMarkers);
@@ -469,121 +443,6 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         @Override
         public void onLoadingCancelled(String imageUri, View view) {
 
-        }
-    }
-
-
-
-
-
-
-
-    private void doRouting(LatLng startLoc) {
-
-        ArrayList<LatLng> routingLocations = new ArrayList<>();
-        for(Marker marker : routingMarkers) {
-            routingLocations.add(marker.getPosition());
-        }
-
-        if(startLoc != null)
-            routingLocations.add(0, startLoc);
-
-        //delete previous route
-        if(currentRoute != null) {
-            currentRoute.cancel(true);
-            currentRoute = null;
-        }
-
-        if(polyline != null) {
-            polyline.remove();
-            polyline = null;
-        }
-
-        currentRoute = new Routing.Builder()
-                .travelMode(Routing.TravelMode.WALKING)
-                .withListener(this)
-                .waypoints(routingLocations)
-                .build();
-
-        currentRoute.execute();
-    }
-
-    @Override
-    public void onRoutingFailure(RouteException e) {
-
-    }
-
-    @Override
-    public void onRoutingStart() {
-
-    }
-
-    @Override
-    public void onRoutingSuccess(ArrayList<Route> arrayList, int i) {
-        Route route = arrayList.get(i);
-
-        List<LatLng> points = route.getPoints();
-
-        PolylineOptions polylineOptions = new PolylineOptions();
-
-        polylineOptions.addAll(points);
-
-        polylineOptions.color(Color.GREEN);
-        polylineOptions.width(10);
-
-        polyline = map.addPolyline(polylineOptions);
-
-    }
-
-    @Override
-    public void onRoutingCancelled() {
-
-    }
-
-    @Override
-    public void onClick(DialogInterface dialogInterface, int which) {
-        if(which == AlertDialog.BUTTON_POSITIVE) {
-            doRouting(currentLocation);
-        }
-    }
-
-
-    private void removePolylinePointsBaseOnLocation(Location location) {
-        List<LatLng> points = polyline.getPoints();
-
-        int index = -1;
-
-        for(int i=0; i < points.size();i ++)
-        {
-            if(i < points.size() -1)
-            {
-                LatLng point1 = points.get(i);
-                LatLng point2 =  points.get(i+1);
-                double offset = 0.0001;
-
-                Double maxLat = Math.max(point1.latitude, point2.latitude) + offset;
-                Double maxLng = Math.max(point1.longitude, point2.longitude) + offset;
-                Double minLat = Math.min(point1.latitude, point2.latitude) - offset;
-                Double minLng = Math.min(point1.longitude, point2.longitude) - offset;
-                if(location.getLatitude() >= minLat && location.getLatitude() <= maxLat && location.getLongitude() >= minLng && location.getLongitude() <= maxLng)
-                {
-                    index = i;
-                    break;
-                }
-            }
-        }
-
-        if(index != -1)
-        {
-            for (int i = index - 1;i >= 0;i--) {
-                points.remove(0);
-            }
-            points.set(0, new LatLng(location.getLatitude(), location.getLongitude()));
-            polyline.setPoints(points);
-        }
-        else {
-            //refresh polyline
-            doRouting(currentLocation);
         }
     }
 

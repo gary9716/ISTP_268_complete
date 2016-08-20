@@ -21,9 +21,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class PGMapDataManager implements Callback {
 
-    public final static String PGMapServerAddr = "http://140.112.30.43:5001";
+    public final static String PGMapServerAddr = "http://140.112.30.42:5001";
     public final static String ImgServerAddr = "http://www.csie.ntu.edu.tw/~r03944003";
-    public final static String MapResourcePath = "/map-data";
+    public final static String MapResourcePath = "/raw_data";
     public interface DataChangedListener {
         void onData(JSONObject jsonObject);
     }
