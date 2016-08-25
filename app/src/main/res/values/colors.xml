@@ -23,6 +23,9 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="selectedColor">#bdbdbd</color>
+    <color name="imageBGColor">#eeeeee</color>
+    <color name="accentTransparent">#6649814B</color>
+    <color name="transparent">#00000000</color>
 
     <color name="pocket_color_1">#85edb9</color>
     <color name="pocket_color_2">#34bdb7</color>

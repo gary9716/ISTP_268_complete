@@ -4,14 +4,13 @@ import android.app.Application;
 
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
-import com.hci.lab430.myapplication.model.OwningPokemonInfo;
+import com.hci.lab430.myapplication.model.OwnedPokemonInfo;
 import com.hci.lab430.myapplication.model.PokemonType;
 import com.hci.lab430.myapplication.model.SearchPokemonInfo;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.parse.Parse;
-import com.parse.ParseFacebookUtils;
 import com.parse.ParseObject;
 
 /**
@@ -23,7 +22,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        ParseObject.registerSubclass(OwningPokemonInfo.class);
+        ParseObject.registerSubclass(OwnedPokemonInfo.class);
 
         ParseObject.registerSubclass(SearchPokemonInfo.class);
         ParseObject.registerSubclass(PokemonType.class);

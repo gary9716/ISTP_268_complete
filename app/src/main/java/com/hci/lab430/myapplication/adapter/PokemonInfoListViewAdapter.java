@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,66 +13,69 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.hci.lab430.myapplication.R;
-import com.hci.lab430.myapplication.model.OwningPokemonInfo;
+import com.hci.lab430.myapplication.model.OwnedPokemonInfo;
+import com.hci.lab430.myapplication.model.Utils;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.parse.ParseFile;
 import com.squareup.picasso.Picasso;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
+import eu.davidea.flipview.FlipView;
+
 /**
  * Created by lab430 on 16/7/16.
  */
-public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> {
+public class PokemonInfoListViewAdapter extends ArrayAdapter<OwnedPokemonInfo> {
 
     int mRow_layout_id;
     LayoutInflater mInflater;
-    public ArrayList<OwningPokemonInfo> selectedPokemons;
+    public ArrayList<OwnedPokemonInfo> selectedPokemons;
     public WeakReference<OnPokemonInfoStateChangeListener> stateChangeListener = null;
 
     public PokemonInfoListViewAdapter(Context context,
                                       int resource,
-                                      ArrayList<OwningPokemonInfo> objects) {
+                                      ArrayList<OwnedPokemonInfo> objects) {
         super(context, resource, objects);
         mRow_layout_id = resource;
         mInflater = LayoutInflater.from(context);
         selectedPokemons = new ArrayList<>();
+        ViewHolder.mContext = context;
         ViewHolder.mAdapter = this;
         ViewHolder.mPicasso = Picasso.with(context);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        OwningPokemonInfo dataItem = getItem(position);
+    public View getView(int position, View rowView, ViewGroup parent) {
+        OwnedPokemonInfo dataItem = getItem(position);
         ViewHolder viewHolder = null;
-        if(convertView == null) { //create a new one if it hasn't been initiated yet.
-            convertView = mInflater.inflate(mRow_layout_id, parent, false);
-            viewHolder = new ViewHolder(convertView);
-            convertView.setTag(viewHolder);
+        if(rowView == null) { //create a new one if it hasn't been initiated yet.
+            rowView = mInflater.inflate(mRow_layout_id, null);
+            viewHolder = new ViewHolder(rowView);
+            rowView.setTag(viewHolder);
         }
         else {
-            viewHolder = (ViewHolder) convertView.getTag();
+            viewHolder = (ViewHolder) rowView.getTag();
         }
 
         viewHolder.setView(dataItem);
 
-        return convertView;
+        return rowView;
     }
 
     public interface OnPokemonInfoStateChangeListener {
         void onPokemonInfoSelectedChange(PokemonInfoListViewAdapter adapter);
     }
 
-    void onPokemonSelectedChange(OwningPokemonInfo owningPokemonInfo) {
+    void onPokemonSelectedChange(OwnedPokemonInfo ownedPokemonInfo) {
         if(stateChangeListener.get() != null) {
             stateChangeListener.get().onPokemonInfoSelectedChange(this);
         }
 
-        if (owningPokemonInfo.isSelected) {
-            selectedPokemons.add(owningPokemonInfo);
+        if (ownedPokemonInfo.isSelected) {
+            selectedPokemons.add(ownedPokemonInfo);
         } else {
-            selectedPokemons.remove(owningPokemonInfo);
+            selectedPokemons.remove(ownedPokemonInfo);
         }
 
         if(stateChangeListener.get() != null) {
@@ -81,20 +83,20 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
         }
     }
 
-    public OwningPokemonInfo getItemWithName(String name) {
+    public OwnedPokemonInfo getItemWithName(String name) {
 
         for(int i = 0;i < getCount();i++) {
-            OwningPokemonInfo owningPokemonInfo = getItem(i);
-            if(name.equals(owningPokemonInfo.getName())) {
-                return owningPokemonInfo;
+            OwnedPokemonInfo ownedPokemonInfo = getItem(i);
+            if(name.equals(ownedPokemonInfo.getName())) {
+                return ownedPokemonInfo;
             }
         }
 
         return null;
     }
 
-    public void update(OwningPokemonInfo newData) {
-        OwningPokemonInfo oldData = getItemWithName(newData.getName());
+    public void update(OwnedPokemonInfo newData) {
+        OwnedPokemonInfo oldData = getItemWithName(newData.getName());
         oldData.setSkill(newData.getSkill());
         oldData.setCurrentHP(newData.getCurrentHP());
         oldData.setMaxHP(newData.getMaxHP());
@@ -117,11 +119,14 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
         private TextView mCurrentHPTxt = null;
         private TextView mMaxHPTxt = null;
         private ProgressBar mHPBar = null;
+        private FlipView flipView = null;
+
 
         public static Picasso mPicasso;
         public static PokemonInfoListViewAdapter mAdapter;
+        public static Context mContext;
 
-        private OwningPokemonInfo mOwningPokemonInfo = null;
+        private OwnedPokemonInfo mOwnedPokemonInfo = null;
 
         public ViewHolder(View row_view) {
             mRowView = row_view;
@@ -131,15 +136,31 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
             mCurrentHPTxt = (TextView) row_view.findViewById(R.id.currentHP);
             mMaxHPTxt = (TextView) row_view.findViewById(R.id.maxHP);
             mHPBar = (ProgressBar) row_view.findViewById(R.id.HP_progressBar);
+            if(mAppearanceImg == null) {
+                flipView = (FlipView) row_view.findViewById(R.id.flip_horizontal_oval_view_big);
+                flipView.setOnClickListener(this);
+
+                mAppearanceImg = flipView.getFrontImageView();
+                mAppearanceImg.setAdjustViewBounds(true);
+                mAppearanceImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                mAppearanceImg.setScaleX(2);
+                mAppearanceImg.setScaleY(2);
+
+            }
+            else {
+                mAppearanceImg.setOnClickListener(this);
+            }
 
         }
 
-        public void setView(OwningPokemonInfo data) {
-            mOwningPokemonInfo = data;
-
+        public void setView(OwnedPokemonInfo data) {
+            mOwnedPokemonInfo = data;
             mRowView.setActivated(data.isSelected);
-            mPicasso.load(data.getListImgId()).into(mAppearanceImg);
-            mAppearanceImg.setOnClickListener(this);
+
+            ImageLoader.getInstance().displayImage(data.getListImgUrl(), mAppearanceImg);
+
+            if(flipView != null)
+                flipView.flipSilently(data.isSelected);
 
             mNameTxt.setText(data.getName());
             mLevelTxt.setText(String.valueOf(data.getLevel()));
@@ -155,32 +176,30 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
         }
 
         public void setSelected() {
-            mOwningPokemonInfo.isSelected = !mOwningPokemonInfo.isSelected;
-            mRowView.setActivated(mOwningPokemonInfo.isSelected);
-            mAdapter.onPokemonSelectedChange(mOwningPokemonInfo);
+            mOwnedPokemonInfo.isSelected = !mOwnedPokemonInfo.isSelected;
+            mRowView.setActivated(mOwnedPokemonInfo.isSelected);
+            mAdapter.onPokemonSelectedChange(mOwnedPokemonInfo);
         }
 
         @Override
         public void onClick(View view) {
-            int viewId = view.getId();
-            if (viewId == R.id.appearance_image) {
-                setSelected();
-            }
+            setSelected();
+            flipView.showNext();
         }
 
         private void animateHPBarAndCurrentHP() {
             //play animation
             //it would be asynchronous operation so we need to get a reference
-            final OwningPokemonInfo owningPokemonInfo = mOwningPokemonInfo;
+            final OwnedPokemonInfo ownedPokemonInfo = mOwnedPokemonInfo;
             int animationDuration = 1500;
             final ObjectAnimator hpBarAnimator = ObjectAnimator.ofInt(mHPBar, "progress", mHPBar.getProgress(), 100);
             hpBarAnimator.setDuration(animationDuration);
 
             final ValueAnimator hpTextAnimator = new ValueAnimator();
-            hpTextAnimator.setObjectValues(owningPokemonInfo.getCurrentHP(), owningPokemonInfo.getMaxHP());// here you set the range, from 0 to "count" value
+            hpTextAnimator.setObjectValues(ownedPokemonInfo.getCurrentHP(), ownedPokemonInfo.getMaxHP());// here you set the range, from 0 to "count" value
             hpTextAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    if(!mOwningPokemonInfo.getName().equals(owningPokemonInfo.getName())) {
+                    if(!mOwnedPokemonInfo.getName().equals(ownedPokemonInfo.getName())) {
                         hpBarAnimator.cancel();
                         hpTextAnimator.cancel();
                     }
@@ -197,8 +216,8 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwningPokemonInfo> 
 
                 @Override
                 public void onAnimationEnd(Animator animator) {
-                    owningPokemonInfo.isHealing = false;
-                    owningPokemonInfo.setCurrentHP(owningPokemonInfo.getMaxHP());
+                    ownedPokemonInfo.isHealing = false;
+                    ownedPokemonInfo.setCurrentHP(ownedPokemonInfo.getMaxHP());
                 }
 
                 @Override

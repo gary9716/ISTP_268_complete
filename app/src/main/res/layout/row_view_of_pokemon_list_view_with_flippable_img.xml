@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:background="@drawable/row_view_bg_key">
 
-    <ImageView
-        android:id="@+id/appearance_image"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:src="@drawable/unknown"
-        android:scaleX="1.7"
-        android:scaleY="1.7"
-        android:layout_width="50dp"
+    <eu.davidea.flipview.FlipView
+        android:id="@+id/flip_horizontal_oval_view_big"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
-        android:layout_margin="25dp"/>
+        android:layout_gravity="center_horizontal"
+        android:clipToPadding="false"
+        android:clickable="true"
+        android:padding="10dp"
+        app:checked="false"
+        app:enableInitialAnimation="true"
+        app:rearImage="@drawable/pokemon_ball"
+        app:rearBackgroundColor="@color/transparent"
+        app:frontBackgroundColor="@color/transparent"
+        app:rearImageAnimation="@anim/fade_in"
+        app:rearImageAnimationDelay="0"/>
 
     <ProgressBar
         style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
@@ -36,8 +40,8 @@
         android:text="巴大蝶"
         android:id="@+id/name"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/appearance_image"
-        android:layout_toEndOf="@+id/appearance_image"
+        android:layout_toRightOf="@+id/flip_horizontal_oval_view_big"
+        android:layout_toEndOf="@+id/flip_horizontal_oval_view_big"
         android:layout_marginTop="20dp" />
 
     <TextView
@@ -47,8 +51,8 @@
         android:text="lv."
         android:id="@+id/level_prefix"
         android:layout_below="@+id/name"
-        android:layout_toRightOf="@+id/appearance_image"
-        android:layout_toEndOf="@+id/appearance_image"
+        android:layout_toRightOf="@+id/flip_horizontal_oval_view_big"
+        android:layout_toEndOf="@+id/flip_horizontal_oval_view_big"
         android:layout_marginTop="10dp" />
 
     <TextView

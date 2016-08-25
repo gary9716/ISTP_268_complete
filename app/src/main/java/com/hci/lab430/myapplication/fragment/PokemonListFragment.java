@@ -26,7 +26,7 @@ import com.hci.lab430.myapplication.PokemonDetailActivity;
 import com.hci.lab430.myapplication.R;
 import com.hci.lab430.myapplication.adapter.PokemonInfoListViewAdapter;
 import com.hci.lab430.myapplication.model.OwningPokemonDataManager;
-import com.hci.lab430.myapplication.model.OwningPokemonInfo;
+import com.hci.lab430.myapplication.model.OwnedPokemonInfo;
 import com.hci.lab430.myapplication.model.Utils;
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Created by lab430 on 16/8/4.
  */
-public class PokemonListFragment extends ItemFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener, FindCallback<OwningPokemonInfo> {
+public class PokemonListFragment extends ItemFragment implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener, FindCallback<OwnedPokemonInfo> {
 
     AlertDialog deleteActionDialog;
     View fragmentView;
@@ -50,7 +50,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     MediaPlayer mediaPlayer = null;
     Handler handler;
 
-    ArrayList<OwningPokemonInfo> owningPokemonInfos;
+    ArrayList<OwnedPokemonInfo> ownedPokemonInfos;
 
     public static PokemonListFragment newInstance() {
         PokemonListFragment fragment = new PokemonListFragment();
@@ -66,10 +66,10 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         dataManager = new OwningPokemonDataManager(activity);
         dataManager.loadPokemonTypes();
 
-        owningPokemonInfos = new ArrayList<>();
+        ownedPokemonInfos = new ArrayList<>();
         prepareListViewData();
 
-        adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos);
+        adapter = new PokemonInfoListViewAdapter(activity, R.layout.row_view_of_pokemon_list_view_with_flippable_img, ownedPokemonInfos);
         adapter.stateChangeListener = new WeakReference<PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener>(this);
 
         deleteActionDialog = new AlertDialog.Builder(activity)
@@ -90,28 +90,28 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
 
         if(!recordIsInDB) {
             loadFromCSV();
-            OwningPokemonInfo.initTable(owningPokemonInfos);
+            OwnedPokemonInfo.initTable(ownedPokemonInfos);
             preferences.edit().putBoolean(recordIsInDBKey, true).commit();
         }
         else {
-            ParseQuery<OwningPokemonInfo> query = OwningPokemonInfo.getQuery();
-            query.fromPin(OwningPokemonInfo.localDBTableName).findInBackground(this); //query from local
+            ParseQuery<OwnedPokemonInfo> query = OwnedPokemonInfo.getQuery();
+            query.fromPin(OwnedPokemonInfo.localDBTableName).findInBackground(this); //query from local
         }
 
     }
 
     private void loadFromCSV() {
         dataManager.loadListViewData();
-        ArrayList<OwningPokemonInfo> dataArray = dataManager.getOwningPokemonInfos();
-        for(OwningPokemonInfo owningPokemonInfo : dataArray) {
-            owningPokemonInfos.add(owningPokemonInfo);
+        ArrayList<OwnedPokemonInfo> dataArray = dataManager.getOwnedPokemonInfos();
+        for(OwnedPokemonInfo ownedPokemonInfo : dataArray) {
+            ownedPokemonInfos.add(ownedPokemonInfo);
         }
 
         Intent srcIntent = activity.getIntent();
         int selectedInitPokemonIndex =
                 srcIntent.getIntExtra(MainActivity.selectedPokemonIndexKey, 0);
-        OwningPokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
-        owningPokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
+        OwnedPokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
+        ownedPokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
     }
 
     @Nullable
@@ -141,9 +141,9 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
         if(itemIsClickable) { //avoid repeating trigger
             itemIsClickable = false;
-            OwningPokemonInfo owningPokemonInfo = adapter.getItem(position);
+            OwnedPokemonInfo ownedPokemonInfo = adapter.getItem(position);
             Intent detailActIntent = new Intent();
-            detailActIntent.putExtra(OwningPokemonInfo.parcelKey, owningPokemonInfo);
+            detailActIntent.putExtra(OwnedPokemonInfo.parcelKey, ownedPokemonInfo);
             detailActIntent.setClass(activity, PokemonDetailActivity.class);
             startActivityForResult(detailActIntent, detailActRequestCode);
         }
@@ -159,7 +159,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     @Override
     public void onStop() {
         itemIsClickable = true;
-        OwningPokemonInfo.syncToDB(owningPokemonInfos);
+        OwnedPokemonInfo.syncToDB(ownedPokemonInfos);
         super.onStop();
     }
 
@@ -167,8 +167,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     public void onClick(DialogInterface dialogInterface, int which) {
         if(dialogInterface.equals(deleteActionDialog)) {
             if (which == AlertDialog.BUTTON_POSITIVE) {
-                for(OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                    removePokemonInfo(owningPokemonInfo);
+                for(OwnedPokemonInfo ownedPokemonInfo : adapter.selectedPokemons) {
+                    removePokemonInfo(ownedPokemonInfo);
                 }
                 clearSelectedPokemons();
             } else if (which == AlertDialog.BUTTON_NEGATIVE) {
@@ -182,13 +182,13 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == detailActRequestCode) {
             if(resultCode == PokemonDetailActivity.removeFromList) {
-                String nameToRemove = data.getStringExtra(OwningPokemonInfo.nameKey);
+                String nameToRemove = data.getStringExtra(OwnedPokemonInfo.nameKey);
                 if(nameToRemove != null) {
-                    OwningPokemonInfo owningPokemonInfo = adapter.getItemWithName(nameToRemove);
-                    if(owningPokemonInfo != null) {
-                        removePokemonInfo(owningPokemonInfo);
-                        adapter.selectedPokemons.remove(owningPokemonInfo); //in case it was selected
-                        Toast.makeText(activity, String.format("%s已經被存入電腦中", owningPokemonInfo.getName()),Toast.LENGTH_LONG).show();
+                    OwnedPokemonInfo ownedPokemonInfo = adapter.getItemWithName(nameToRemove);
+                    if(ownedPokemonInfo != null) {
+                        removePokemonInfo(ownedPokemonInfo);
+                        adapter.selectedPokemons.remove(ownedPokemonInfo); //in case it was selected
+                        Toast.makeText(activity, String.format("%s已經被存入電腦中", ownedPokemonInfo.getName()),Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -223,10 +223,10 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
             boolean shouldHeal = false;
             // once the healing button has been pressed,
             // we need to deselect the selected items in list view.
-            for(OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                owningPokemonInfo.isSelected = false;
+            for(OwnedPokemonInfo ownedPokemonInfo : adapter.selectedPokemons) {
+                ownedPokemonInfo.isSelected = false;
                 //check whether we need to show the effect
-                if(owningPokemonInfo.getCurrentHP() < owningPokemonInfo.getMaxHP()) {
+                if(ownedPokemonInfo.getCurrentHP() < ownedPokemonInfo.getMaxHP()) {
                     shouldHeal = true;
                 }
 
@@ -245,9 +245,9 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
             return true;
         }
         else if(itemId == R.id.action_level_up) {
-            for(OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                owningPokemonInfo.setLevel(owningPokemonInfo.getLevel() + 1);
-                owningPokemonInfo.isSelected = false;
+            for(OwnedPokemonInfo ownedPokemonInfo : adapter.selectedPokemons) {
+                ownedPokemonInfo.setLevel(ownedPokemonInfo.getLevel() + 1);
+                ownedPokemonInfo.isSelected = false;
             }
             adapter.notifyDataSetChanged();
             clearSelectedPokemons();
@@ -255,7 +255,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
             return true;
         }
         else if(itemId == R.id.action_sync) {
-            OwningPokemonInfo.syncToDB(owningPokemonInfos);
+            OwnedPokemonInfo.syncToDB(ownedPokemonInfos);
         }
         return false;
     }
@@ -263,8 +263,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     Runnable startHealingEffect = new Runnable() {
         @Override
         public void run() {
-            for (OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                owningPokemonInfo.isHealing = true;
+            for (OwnedPokemonInfo ownedPokemonInfo : adapter.selectedPokemons) {
+                ownedPokemonInfo.isHealing = true;
             }
             adapter.notifyDataSetChanged();
             clearSelectedPokemons();
@@ -282,25 +282,25 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         getActivity().invalidateOptionsMenu();
     }
 
-    public void removePokemonInfo(OwningPokemonInfo pokemonInfo) {
+    public void removePokemonInfo(OwnedPokemonInfo pokemonInfo) {
         if(adapter != null)
             adapter.remove(pokemonInfo);
 
         //and remove from database
-        pokemonInfo.unpinInBackground(OwningPokemonInfo.localDBTableName); //remove from local
+        pokemonInfo.unpinInBackground(OwnedPokemonInfo.localDBTableName); //remove from local
 
     }
 
     @Override
-    public void done(List<OwningPokemonInfo> objects, ParseException e) {
+    public void done(List<OwnedPokemonInfo> objects, ParseException e) {
         if (e == null) {
-            owningPokemonInfos.clear();
-            for (OwningPokemonInfo owningPokemonInfo : objects) {
-                owningPokemonInfos.add(owningPokemonInfo);
+            ownedPokemonInfos.clear();
+            for (OwnedPokemonInfo ownedPokemonInfo : objects) {
+                ownedPokemonInfos.add(ownedPokemonInfo);
             }
-            Log.d(OwningPokemonInfo.debug_tag, "finishing loading from local DB");
+            Log.d(OwnedPokemonInfo.debug_tag, "finishing loading from local DB");
         } else {
-            Log.d(OwningPokemonInfo.debug_tag, "fail to load from local DB");
+            Log.d(OwnedPokemonInfo.debug_tag, "fail to load from local DB");
         }
 
         if (adapter != null)
@@ -323,8 +323,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         dataManager.releaseAll();
         dataManager = null;
 
-        owningPokemonInfos.clear();
-        owningPokemonInfos = null;
+        ownedPokemonInfos.clear();
+        ownedPokemonInfos = null;
     }
 
 }

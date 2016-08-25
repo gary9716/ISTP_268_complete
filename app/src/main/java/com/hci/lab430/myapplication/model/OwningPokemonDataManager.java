@@ -2,12 +2,7 @@ package com.hci.lab430.myapplication.model;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
-
-import com.parse.CountCallback;
-import com.parse.ParseException;
-import com.parse.ParseQuery;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -20,9 +15,9 @@ public class OwningPokemonDataManager {
     Context mContext;
     Resources mRes;
     String packageName;
-    ArrayList<OwningPokemonInfo> owningPokemonInfos = null;
+    ArrayList<OwnedPokemonInfo> ownedPokemonInfos = null;
     ArrayList<String> pokemonNames = null;
-    OwningPokemonInfo[] initThreePokemons = new OwningPokemonInfo[3];
+    OwnedPokemonInfo[] initThreePokemons = new OwnedPokemonInfo[3];
 
     public OwningPokemonDataManager(Context context) {
         mContext = context;
@@ -36,7 +31,7 @@ public class OwningPokemonDataManager {
         try {
             //load pokemon types
             reader = new BufferedReader(new InputStreamReader(mContext.getAssets().open("pokemon_types.csv")));
-            OwningPokemonInfo.typeNames = reader.readLine().split(",");
+            OwnedPokemonInfo.typeNames = reader.readLine().split(",");
             reader.close();
         }
         catch(Exception e) {
@@ -45,7 +40,7 @@ public class OwningPokemonDataManager {
     }
 
     public void loadListViewData() {
-        owningPokemonInfos = new ArrayList<>();
+        ownedPokemonInfos = new ArrayList<>();
 
         BufferedReader reader;
         String line = null;
@@ -64,7 +59,7 @@ public class OwningPokemonDataManager {
             reader = new BufferedReader(new InputStreamReader(mContext.getAssets().open("pokemon_data.csv")));
             while ((line = reader.readLine()) != null) {
                 dataFields = line.split(",");
-                owningPokemonInfos.add(constructPokemonInfo(dataFields));
+                ownedPokemonInfos.add(constructPokemonInfo(dataFields));
             }
             reader.close();
 
@@ -78,46 +73,46 @@ public class OwningPokemonDataManager {
 
     static final int skill_startIndex = 8;
 
-    private OwningPokemonInfo constructPokemonInfo(String[] dataFields) {
+    private OwnedPokemonInfo constructPokemonInfo(String[] dataFields) {
 
-        OwningPokemonInfo owningPokemonInfo = new OwningPokemonInfo();
+        OwnedPokemonInfo ownedPokemonInfo = new OwnedPokemonInfo();
         int pokeId = Integer.valueOf(dataFields[0]);
-        String listImgUrl = String.format("http://pokeapi.co/media/sprites/pokemon/%d.png", pokeId);
-        owningPokemonInfo.setListImgUrl(listImgUrl);
-        owningPokemonInfo.setDetailImgId(mRes.getIdentifier("detail_" + dataFields[1], "drawable", packageName));
+        String listImgUrl = String.format("http://www.csie.ntu.edu.tw/~r03944003/listImg/%d.png", pokeId);
+        ownedPokemonInfo.setListImgUrl(listImgUrl);
+        ownedPokemonInfo.setDetailImgId(mRes.getIdentifier("detail_" + dataFields[1], "drawable", packageName));
         int listImgId = mRes.getIdentifier("list_" + dataFields[1], "drawable", packageName);
-        owningPokemonInfo.setListImgId(listImgId);
-        owningPokemonInfo.setName(dataFields[2]);
-        owningPokemonInfo.setLevel(Integer.valueOf(dataFields[3]));
-        owningPokemonInfo.setCurrentHP(Integer.valueOf(dataFields[4]));
-        owningPokemonInfo.setMaxHP(Integer.valueOf(dataFields[5]));
-        owningPokemonInfo.setType_1(Integer.valueOf(dataFields[6]));
-        owningPokemonInfo.setType_2(Integer.valueOf(dataFields[7]));
+        ownedPokemonInfo.setListImgId(listImgId);
+        ownedPokemonInfo.setName(dataFields[2]);
+        ownedPokemonInfo.setLevel(Integer.valueOf(dataFields[3]));
+        ownedPokemonInfo.setCurrentHP(Integer.valueOf(dataFields[4]));
+        ownedPokemonInfo.setMaxHP(Integer.valueOf(dataFields[5]));
+        ownedPokemonInfo.setType_1(Integer.valueOf(dataFields[6]));
+        ownedPokemonInfo.setType_2(Integer.valueOf(dataFields[7]));
         //if strings are not enough, rest of array index would point to null.
-        String[] skills = new String[OwningPokemonInfo.maxNumSkills];
+        String[] skills = new String[OwnedPokemonInfo.maxNumSkills];
         for(int i = skill_startIndex;i < dataFields.length;i++) {
             skills[i - skill_startIndex] = dataFields[i];
         }
-        owningPokemonInfo.setSkill(skills);
+        ownedPokemonInfo.setSkill(skills);
 
-        return owningPokemonInfo;
+        return ownedPokemonInfo;
     }
 
     public ArrayList<String> getPokemonNames() {
         return pokemonNames;
     }
 
-    public ArrayList<OwningPokemonInfo> getOwningPokemonInfos() {
-        return owningPokemonInfos;
+    public ArrayList<OwnedPokemonInfo> getOwnedPokemonInfos() {
+        return ownedPokemonInfos;
     }
 
-    public OwningPokemonInfo[] getInitThreePokemonInfos() {
+    public OwnedPokemonInfo[] getInitThreePokemonInfos() {
         return initThreePokemons;
     }
 
     public void releaseAll() {
-        owningPokemonInfos.clear();
-        owningPokemonInfos = null;
+        ownedPokemonInfos.clear();
+        ownedPokemonInfos = null;
         pokemonNames.clear();
         pokemonNames = null;
         initThreePokemons = null;

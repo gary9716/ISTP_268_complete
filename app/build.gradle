@@ -2,12 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.1'
-
+    buildToolsVersion '23.0.3'
     defaultConfig {
         applicationId "com.hci.lab430.myapplication"
         minSdkVersion 17
-        targetSdkVersion 24
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -17,12 +16,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    productFlavors {
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:24.1.1'
+    compile 'com.android.support:appcompat-v7:23.x.x'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.2.0'
     compile('com.mikepenz:materialdrawer:5.3.6@aar') {
@@ -41,4 +42,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-location:9.4.0'
     compile 'com.squareup.okhttp:okhttp:2.7.5'
     compile 'com.github.jd-alexander:library:1.1.0'
+    compile 'eu.davidea:flipview:1.1.1@aar'
 }

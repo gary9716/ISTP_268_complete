@@ -16,7 +16,7 @@ import android.widget.Toast;
 
 import com.hci.lab430.myapplication.adapter.PokemonInfoListViewAdapter;
 import com.hci.lab430.myapplication.model.OwningPokemonDataManager;
-import com.hci.lab430.myapplication.model.OwningPokemonInfo;
+import com.hci.lab430.myapplication.model.OwnedPokemonInfo;
 import com.hci.lab430.myapplication.model.Utils;
 
 import java.lang.ref.WeakReference;
@@ -43,16 +43,16 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         dataManager.loadPokemonTypes();
         dataManager.loadListViewData();
 
-        ArrayList<OwningPokemonInfo> owningPokemonInfos = new ArrayList<>();
-        owningPokemonInfos.addAll(dataManager.getOwningPokemonInfos());
+        ArrayList<OwnedPokemonInfo> ownedPokemonInfos = new ArrayList<>();
+        ownedPokemonInfos.addAll(dataManager.getOwnedPokemonInfos());
 
         Intent srcIntent = getIntent();
         int selectedInitPokemonIndex =
                 srcIntent.getIntExtra(MainActivity.selectedPokemonIndexKey, 0);
-        OwningPokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
-        owningPokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
+        OwnedPokemonInfo[] initThreePokemonInfos = dataManager.getInitThreePokemonInfos();
+        ownedPokemonInfos.add(0, initThreePokemonInfos[selectedInitPokemonIndex]);
 
-        adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, owningPokemonInfos);
+        adapter = new PokemonInfoListViewAdapter(this, R.layout.row_view_of_pokemon_list_view, ownedPokemonInfos);
         adapter.stateChangeListener = new WeakReference<PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener>(this);
 
         ListView pokemonListView = (ListView)findViewById(R.id.pokemonListView);
@@ -92,10 +92,10 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
             boolean shouldHeal = false;
             // once the healing button has been pressed,
             // we need to deselect the selected items in list view.
-            for(OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                owningPokemonInfo.isSelected = false;
+            for(OwnedPokemonInfo ownedPokemonInfo : adapter.selectedPokemons) {
+                ownedPokemonInfo.isSelected = false;
                 //check whether we need to show the effect
-                if(owningPokemonInfo.getCurrentHP() < owningPokemonInfo.getMaxHP()) {
+                if(ownedPokemonInfo.getCurrentHP() < ownedPokemonInfo.getMaxHP()) {
                     shouldHeal = true;
                 }
             }
@@ -125,8 +125,8 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
     private Runnable startHealingTask = new Runnable() {
         @Override
         public void run() {
-            for (OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                owningPokemonInfo.isHealing = true;
+            for (OwnedPokemonInfo ownedPokemonInfo : adapter.selectedPokemons) {
+                ownedPokemonInfo.isHealing = true;
             }
             adapter.notifyDataSetChanged();
             adapter.selectedPokemons.clear();
@@ -142,9 +142,9 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
         if(itemIsClickable) { //avoid repeating trigger
             itemIsClickable = false;
-            OwningPokemonInfo owningPokemonInfo = adapter.getItem(position);
+            OwnedPokemonInfo ownedPokemonInfo = adapter.getItem(position);
             Intent detailActIntent = new Intent();
-            detailActIntent.putExtra(OwningPokemonInfo.parcelKey, owningPokemonInfo);
+            detailActIntent.putExtra(OwnedPokemonInfo.parcelKey, ownedPokemonInfo);
             detailActIntent.setClass(this, PokemonDetailActivity.class);
             startActivityForResult(detailActIntent, detailActRequestCode);
         }
@@ -163,13 +163,13 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == detailActRequestCode) {
             if(resultCode == PokemonDetailActivity.removeFromList) {
-                String nameToRemove = data.getStringExtra(OwningPokemonInfo.nameKey);
-                if(nameToRemove != null) {
-                    OwningPokemonInfo owningPokemonInfo = adapter.getItemWithName(nameToRemove);
-                    if(owningPokemonInfo != null) {
-                        adapter.remove(owningPokemonInfo);
-                        adapter.selectedPokemons.remove(owningPokemonInfo);
-                        Toast.makeText(PokemonListActivity.this, String.format("%s已經被存入電腦中", owningPokemonInfo.getName()),Toast.LENGTH_LONG).show();
+                String nameToRemove = data.getStringExtra(OwnedPokemonInfo.nameKey);
+                if(nameToRemove != null && adapter != null) {
+                    OwnedPokemonInfo ownedPokemonInfo = adapter.getItemWithName(nameToRemove);
+                    if(ownedPokemonInfo != null) {
+                        adapter.remove(ownedPokemonInfo);
+                        adapter.selectedPokemons.remove(ownedPokemonInfo);
+                        Toast.makeText(PokemonListActivity.this, String.format("%s已經被存入電腦中", ownedPokemonInfo.getName()),Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -193,8 +193,8 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
     public void onClick(DialogInterface dialogInterface, int which) {
         if(dialogInterface.equals(deleteActionDialog)) {
             if (which == AlertDialog.BUTTON_POSITIVE) {
-                for(OwningPokemonInfo owningPokemonInfo : adapter.selectedPokemons) {
-                    adapter.remove(owningPokemonInfo);
+                for(OwnedPokemonInfo ownedPokemonInfo : adapter.selectedPokemons) {
+                    adapter.remove(ownedPokemonInfo);
                 }
                 adapter.selectedPokemons.clear();
                 invalidateOptionsMenu();
@@ -213,6 +213,7 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
     @Override
     protected void onDestroy() {
         adapter.releaseAll();
+        adapter = null;
         dataManager.releaseAll();
         dataManager = null;
         mediaPlayer = null;

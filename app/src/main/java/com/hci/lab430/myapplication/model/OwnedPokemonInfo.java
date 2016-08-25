@@ -1,18 +1,13 @@
 package com.hci.lab430.myapplication.model;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import com.parse.FindCallback;
 import com.parse.ParseClassName;
 import com.parse.ParseException;
-import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.SaveCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +15,8 @@ import java.util.List;
 /**
  * Created by lab430 on 16/7/16.
  */
-@ParseClassName("OwningPokemonInfo")
-public class OwningPokemonInfo extends ParseObject implements Parcelable{
+@ParseClassName("PokemonInfo")
+public class OwnedPokemonInfo extends ParseObject implements Parcelable{
 
     public final static int maxNumSkills = 4;
     public static String[] typeNames;
@@ -72,11 +67,11 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
         dest.writeStringArray(this.getSkill());
     }
 
-    public OwningPokemonInfo() {
+    public OwnedPokemonInfo() {
         super();
     }
 
-    protected OwningPokemonInfo(Parcel in) {
+    protected OwnedPokemonInfo(Parcel in) {
         super();
         this.setName(in.readString());
         this.setLevel(in.readInt());
@@ -88,15 +83,15 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
         this.setSkill(in.createStringArray());
     }
 
-    public static final Parcelable.Creator<OwningPokemonInfo> CREATOR = new Parcelable.Creator<OwningPokemonInfo>() {
+    public static final Parcelable.Creator<OwnedPokemonInfo> CREATOR = new Parcelable.Creator<OwnedPokemonInfo>() {
         @Override
-        public OwningPokemonInfo createFromParcel(Parcel source) {
-            return new OwningPokemonInfo(source);
+        public OwnedPokemonInfo createFromParcel(Parcel source) {
+            return new OwnedPokemonInfo(source);
         }
 
         @Override
-        public OwningPokemonInfo[] newArray(int size) {
-            return new OwningPokemonInfo[size];
+        public OwnedPokemonInfo[] newArray(int size) {
+            return new OwnedPokemonInfo[size];
         }
     };
 
@@ -210,29 +205,29 @@ public class OwningPokemonInfo extends ParseObject implements Parcelable{
         skillHaveBeenModified = true;
     }
 
-    public static ParseQuery<OwningPokemonInfo> getQuery() {
-        return ParseQuery.getQuery(OwningPokemonInfo.class);
+    public static ParseQuery<OwnedPokemonInfo> getQuery() {
+        return ParseQuery.getQuery(OwnedPokemonInfo.class);
     }
 
-    public static final String debug_tag = OwningPokemonInfo.class.getName();
-    public static final String localDBTableName = OwningPokemonInfo.class.getName();
+    public static final String debug_tag = OwnedPokemonInfo.class.getName();
+    public static final String localDBTableName = OwnedPokemonInfo.class.getName();
 
-    public static void initTable(final ArrayList<OwningPokemonInfo> owningPokemonInfos) {
+    public static void initTable(final ArrayList<OwnedPokemonInfo> ownedPokemonInfos) {
 
-        OwningPokemonInfo.getQuery().fromPin(localDBTableName).findInBackground(new FindCallback<OwningPokemonInfo>() {
+        OwnedPokemonInfo.getQuery().fromPin(localDBTableName).findInBackground(new FindCallback<OwnedPokemonInfo>() {
             @Override
-            public void done(List<OwningPokemonInfo> objects, ParseException e) {
-                final ArrayList<OwningPokemonInfo> newOwningPokemonInfos = owningPokemonInfos;
-                OwningPokemonInfo.unpinAllInBackground(localDBTableName);
-                syncToDB(newOwningPokemonInfos);
+            public void done(List<OwnedPokemonInfo> objects, ParseException e) {
+                final ArrayList<OwnedPokemonInfo> newOwnedPokemonInfos = ownedPokemonInfos;
+                OwnedPokemonInfo.unpinAllInBackground(localDBTableName);
+                syncToDB(newOwnedPokemonInfos);
             }
         });
 
     }
 
-    public static void syncToDB(List<OwningPokemonInfo> owningPokemonInfos) {
+    public static void syncToDB(List<OwnedPokemonInfo> ownedPokemonInfos) {
         //save with new record
-        OwningPokemonInfo.pinAllInBackground(OwningPokemonInfo.localDBTableName, owningPokemonInfos);
+        OwnedPokemonInfo.pinAllInBackground(OwnedPokemonInfo.localDBTableName, ownedPokemonInfos);
     }
 
 
