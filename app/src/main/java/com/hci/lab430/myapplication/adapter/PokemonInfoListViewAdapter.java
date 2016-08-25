@@ -138,14 +138,15 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwnedPokemonInfo> {
             mHPBar = (ProgressBar) row_view.findViewById(R.id.HP_progressBar);
             if(mAppearanceImg == null) {
                 flipView = (FlipView) row_view.findViewById(R.id.flip_horizontal_oval_view_big);
-                flipView.setOnClickListener(this);
+                if(flipView != null) {
+                    flipView.setOnClickListener(this);
 
-                mAppearanceImg = flipView.getFrontImageView();
-                mAppearanceImg.setAdjustViewBounds(true);
-                mAppearanceImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                mAppearanceImg.setScaleX(2);
-                mAppearanceImg.setScaleY(2);
-
+                    mAppearanceImg = flipView.getFrontImageView();
+                    mAppearanceImg.setAdjustViewBounds(true);
+                    mAppearanceImg.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    mAppearanceImg.setScaleX(2);
+                    mAppearanceImg.setScaleY(2);
+                }
             }
             else {
                 mAppearanceImg.setOnClickListener(this);
@@ -184,7 +185,8 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwnedPokemonInfo> {
         @Override
         public void onClick(View view) {
             setSelected();
-            flipView.showNext();
+            if(flipView != null)
+                flipView.showNext();
         }
 
         private void animateHPBarAndCurrentHP() {
