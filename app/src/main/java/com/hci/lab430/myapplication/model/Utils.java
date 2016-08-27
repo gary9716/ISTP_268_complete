@@ -141,4 +141,21 @@ public class Utils {
         }
     }
 
+
+    public static JSONObject getJSONFromAssets(Context context, String fileName) {
+        try {
+            InputStream is = context.getAssets().open(fileName);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            String jsonString = new String(buffer, "UTF-8");
+            JSONObject jsonObject = new JSONObject(jsonString);
+            return jsonObject;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
 }
