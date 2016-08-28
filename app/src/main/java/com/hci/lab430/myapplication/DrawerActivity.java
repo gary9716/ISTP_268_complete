@@ -1,7 +1,6 @@
 package com.hci.lab430.myapplication;
 
 import android.app.Application;
-import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -9,16 +8,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.hci.lab430.myapplication.fragment.ItemFragment;
 import com.hci.lab430.myapplication.fragment.LogFragment;
 import com.hci.lab430.myapplication.fragment.PokemonListFragment;
 import com.hci.lab430.myapplication.fragment.PokemonMapFragment;
-import com.hci.lab430.myapplication.fragment.PokemonSearchFragment;
 import com.hci.lab430.myapplication.fragment.PokemonWebFragment;
-import com.hci.lab430.myapplication.fragment.TestFragment1;
 import com.hci.lab430.myapplication.model.ItemFragmentManager;
 import com.hci.lab430.myapplication.model.Utils;
 import com.mikepenz.materialdrawer.AccountHeader;

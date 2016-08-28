@@ -1,8 +1,9 @@
 package com.hci.lab430.myapplication.model;
 
 import android.app.Activity;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
 
 import com.hci.lab430.myapplication.fragment.ItemFragment;
 
@@ -22,8 +23,8 @@ public class ItemFragmentManager implements ItemFragment.OnStateChangedListener,
     int mFragmentContainerId;
     int preBackStackCount = 0;
 
-    public ItemFragmentManager(Activity activity, int fragmentContainerId, ItemFragment[] itemFragments, int initAttachedFragmentIndex) {
-        mFragmentManager = activity.getFragmentManager();
+    public ItemFragmentManager(AppCompatActivity activity, int fragmentContainerId, ItemFragment[] itemFragments, int initAttachedFragmentIndex) {
+        mFragmentManager = activity.getSupportFragmentManager();
         mFragmentManager.addOnBackStackChangedListener(this);
         mFragmentContainerId = fragmentContainerId;
         FragmentTransaction transaction = mFragmentManager.beginTransaction();

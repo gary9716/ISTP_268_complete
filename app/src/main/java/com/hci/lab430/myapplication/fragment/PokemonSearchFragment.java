@@ -305,16 +305,9 @@ public class PokemonSearchFragment extends ItemFragment implements DialogInterfa
     }
 
     @Override
-    public void onTrimMemory(int level) {
-//        if(level == TRIM_MEMORY_UI_HIDDEN) { //release whenever UI is hidden
-//            releaseViewRelatedResource();
-//        }
-
-        if(level == TRIM_MEMORY_MODERATE) { //we should start to release some resources
-            releaseViewRelatedResource();
-        }
-
-        super.onTrimMemory(level);
+    public void onLowMemory() {
+        releaseViewRelatedResource();
+        super.onLowMemory();
     }
 
     //we should recover these in onCreateView

@@ -1,8 +1,8 @@
 package com.hci.lab430.myapplication;
 
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -30,7 +30,7 @@ public class FragmentTestActivity extends AppCompatActivity implements View.OnCl
         findViewById(R.id.fragment_2).setOnClickListener(this);
         findViewById(R.id.fragment_2_remove).setOnClickListener(this);
 
-        fragmentManager = getFragmentManager();
+        fragmentManager = getSupportFragmentManager();
         fragmentManager.addOnBackStackChangedListener(this);
 
         fragments = new Fragment[2];

@@ -25,7 +25,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
+//import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -56,7 +57,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     public final static int ACCESS_FINE_LOCATION_REQUEST_CODE = 1;
 
     View fragmentView;
-    MapFragment mapFragment;
+    SupportMapFragment mapFragment;
 
     PGMapDataManager mapDataManager;
     final String[] gym_types = {"Uncontested", "Mystic", "Valor", "Instinct"};
@@ -95,7 +96,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if(fragmentView == null) {
             fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
-            mapFragment = MapFragment.newInstance();
+            mapFragment = SupportMapFragment.newInstance();
             mapFragment.getMapAsync(this);
             setHasOptionsMenu(true);
             setMenuVisibility(true);
@@ -112,6 +113,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         getChildFragmentManager().beginTransaction()
                 .replace(R.id.childFragmentContainer, mapFragment)
                 .commit();
+
 
     }
 

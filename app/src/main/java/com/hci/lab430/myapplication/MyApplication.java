@@ -35,8 +35,9 @@ public class MyApplication extends Application {
 
         Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
                 .enableLocalDataStore()
-                .applicationId("d41d8cd98f00b204e9800998ecf8427e")
-                .server("http://140.112.30.43:1337/parse")
+                .applicationId("aBriKu0h4EZgnb8Sft9Uv4HyDZHOj01WZQp3jPs1")
+                .clientKey("YJy27NUjuLfJaicKAFReic3gpCFxdemFsPrsQj05")
+                .server("https://parseapi.back4app.com/")
                 .build());
 
 
