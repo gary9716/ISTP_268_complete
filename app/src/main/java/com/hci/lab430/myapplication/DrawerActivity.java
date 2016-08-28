@@ -17,6 +17,7 @@ import com.hci.lab430.myapplication.fragment.LogFragment;
 import com.hci.lab430.myapplication.fragment.PokemonListFragment;
 import com.hci.lab430.myapplication.fragment.PokemonMapFragment;
 import com.hci.lab430.myapplication.fragment.PokemonSearchFragment;
+import com.hci.lab430.myapplication.fragment.PokemonWebFragment;
 import com.hci.lab430.myapplication.fragment.TestFragment1;
 import com.hci.lab430.myapplication.model.ItemFragmentManager;
 import com.hci.lab430.myapplication.model.Utils;
@@ -51,7 +52,7 @@ public class DrawerActivity extends CustomizedActivity implements ItemFragmentMa
         fragments = new ItemFragment[3];
         fragments[0] = PokemonListFragment.newInstance();
         ((LogFragment)fragments[0]).actualName = "f0";
-        fragments[1] = PokemonSearchFragment.newInstance();
+        fragments[1] = PokemonWebFragment.newInstance();
         ((LogFragment) fragments[1]).actualName = "f1";
         fragments[2] = PokemonMapFragment.newInstance();
         ((LogFragment) fragments[2]).actualName = "f2";

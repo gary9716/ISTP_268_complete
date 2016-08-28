@@ -18,10 +18,13 @@ import java.util.List;
 @ParseClassName("PokemonInfo")
 public class OwnedPokemonInfo extends ParseObject implements Parcelable{
 
+    public static String imgServerUrl = "http://www.csie.ntu.edu.tw/~r03944003";
     public final static int maxNumSkills = 4;
     public static String[] typeNames;
 
+
     public final static String parcelKey = "parcel";
+    public final static String pokemonIdKey = "pokeId";
     public final static String nameKey = "name";
     public final static String listImgIdKey = "listImgId";
     public final static String listImgUrlKey = "listImgUrl";
@@ -57,11 +60,11 @@ public class OwnedPokemonInfo extends ParseObject implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.getPokeId());
         dest.writeString(this.getName());
         dest.writeInt(this.getLevel());
         dest.writeInt(this.getCurrentHP());
         dest.writeInt(this.getMaxHP());
-        dest.writeInt(this.getDetailImgId());
         dest.writeInt(this.getType_1());
         dest.writeInt(this.getType_2());
         dest.writeStringArray(this.getSkill());
@@ -73,11 +76,11 @@ public class OwnedPokemonInfo extends ParseObject implements Parcelable{
 
     protected OwnedPokemonInfo(Parcel in) {
         super();
+        this.setPokeId(in.readString());
         this.setName(in.readString());
         this.setLevel(in.readInt());
         this.setCurrentHP(in.readInt());
         this.setMaxHP(in.readInt());
-        this.setDetailImgId(in.readInt());
         this.setType_1(in.readInt());
         this.setType_2(in.readInt());
         this.setSkill(in.createStringArray());
@@ -95,20 +98,12 @@ public class OwnedPokemonInfo extends ParseObject implements Parcelable{
         }
     };
 
-    public int getListImgId() {
-        return getInt(listImgIdKey);
+    public String getPokeId() {
+        return getString(pokemonIdKey);
     }
 
-    public void setListImgId(int listImgId) {
-        put(listImgIdKey, listImgId);
-    }
-
-    public void setListImgUrl(String url) {
-        put(listImgUrlKey, url);
-    }
-
-    public String getListImgUrl() {
-        return getString(listImgUrlKey);
+    public void setPokeId(String pokeId) {
+        put(pokemonIdKey, pokeId);
     }
 
     public String getName() {
@@ -141,14 +136,6 @@ public class OwnedPokemonInfo extends ParseObject implements Parcelable{
 
     public void setMaxHP(int maxHP) {
         put(maxHPKey, maxHP);
-    }
-
-    public int getDetailImgId() {
-        return getInt(detailImgIdKey);
-    }
-
-    public void setDetailImgId(int detailImgId) {
-        put(detailImgIdKey, detailImgId);
     }
 
     public int getType_1() {
@@ -219,6 +206,9 @@ public class OwnedPokemonInfo extends ParseObject implements Parcelable{
             public void done(List<OwnedPokemonInfo> objects, ParseException e) {
                 final ArrayList<OwnedPokemonInfo> newOwnedPokemonInfos = ownedPokemonInfos;
                 OwnedPokemonInfo.unpinAllInBackground(localDBTableName);
+                for(OwnedPokemonInfo ownedPokemonInfo : objects) {
+                    ownedPokemonInfo.deleteEventually();
+                }
                 syncToDB(newOwnedPokemonInfos);
             }
         });
@@ -228,6 +218,9 @@ public class OwnedPokemonInfo extends ParseObject implements Parcelable{
     public static void syncToDB(List<OwnedPokemonInfo> ownedPokemonInfos) {
         //save with new record
         OwnedPokemonInfo.pinAllInBackground(OwnedPokemonInfo.localDBTableName, ownedPokemonInfos);
+        for(OwnedPokemonInfo ownedPokemonInfo : ownedPokemonInfos) {
+            ownedPokemonInfo.saveEventually();
+        }
     }
 
 

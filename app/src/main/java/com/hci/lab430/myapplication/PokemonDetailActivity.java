@@ -67,8 +67,9 @@ public class PokemonDetailActivity extends CustomizedActivity {
         }
         HPProgressBar = (ProgressBar)findViewById(R.id.HP_progressBar);
 
+        String imgUrl = String.format("http://www.csie.ntu.edu.tw/~r03944003/detailImg/%s.png", mData.getPokeId());
         //bind with data
-        mPicasso.load(mData.getDetailImgId()).into(appearanceImg);
+        mPicasso.load(imgUrl).into(appearanceImg);
         nameText.setText(mData.getName());
         levelText.setText(String.valueOf(mData.getLevel()));
         currentHPText.setText(String.valueOf(mData.getCurrentHP()));

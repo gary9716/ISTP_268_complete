@@ -76,12 +76,7 @@ public class OwningPokemonDataManager {
     private OwnedPokemonInfo constructPokemonInfo(String[] dataFields) {
 
         OwnedPokemonInfo ownedPokemonInfo = new OwnedPokemonInfo();
-        int pokeId = Integer.valueOf(dataFields[0]);
-        String listImgUrl = String.format("http://www.csie.ntu.edu.tw/~r03944003/listImg/%d.png", pokeId);
-        ownedPokemonInfo.setListImgUrl(listImgUrl);
-        ownedPokemonInfo.setDetailImgId(mRes.getIdentifier("detail_" + dataFields[1], "drawable", packageName));
-        int listImgId = mRes.getIdentifier("list_" + dataFields[1], "drawable", packageName);
-        ownedPokemonInfo.setListImgId(listImgId);
+        ownedPokemonInfo.setPokeId(dataFields[0]);
         ownedPokemonInfo.setName(dataFields[2]);
         ownedPokemonInfo.setLevel(Integer.valueOf(dataFields[3]));
         ownedPokemonInfo.setCurrentHP(Integer.valueOf(dataFields[4]));

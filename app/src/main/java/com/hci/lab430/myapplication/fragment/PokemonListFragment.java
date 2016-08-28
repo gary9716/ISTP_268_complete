@@ -96,6 +96,8 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         else {
             ParseQuery<OwnedPokemonInfo> query = OwnedPokemonInfo.getQuery();
             query.fromPin(OwnedPokemonInfo.localDBTableName).findInBackground(this); //query from local
+            query = OwnedPokemonInfo.getQuery();
+            query.findInBackground(this); //directly calling this method on this query is a remote query
         }
 
     }
@@ -288,7 +290,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
 
         //and remove from database
         pokemonInfo.unpinInBackground(OwnedPokemonInfo.localDBTableName); //remove from local
-
+        pokemonInfo.deleteEventually();
     }
 
     @Override

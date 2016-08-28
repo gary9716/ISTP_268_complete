@@ -158,7 +158,8 @@ public class PokemonInfoListViewAdapter extends ArrayAdapter<OwnedPokemonInfo> {
             mOwnedPokemonInfo = data;
             mRowView.setActivated(data.isSelected);
 
-            ImageLoader.getInstance().displayImage(data.getListImgUrl(), mAppearanceImg);
+            String imgUrl = String.format("http://www.csie.ntu.edu.tw/~r03944003/listImg/%s.png", data.getPokeId());
+            ImageLoader.getInstance().displayImage(imgUrl, mAppearanceImg);
 
             if(flipView != null)
                 flipView.flipSilently(data.isSelected);
