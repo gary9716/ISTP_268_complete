@@ -206,10 +206,16 @@ public class OwnedPokemonInfo extends ParseObject implements Parcelable{
             public void done(List<OwnedPokemonInfo> objects, ParseException e) {
                 final ArrayList<OwnedPokemonInfo> newOwnedPokemonInfos = ownedPokemonInfos;
                 OwnedPokemonInfo.unpinAllInBackground(localDBTableName);
-                for(OwnedPokemonInfo ownedPokemonInfo : objects) {
-                    ownedPokemonInfo.deleteEventually();
-                }
-                syncToDB(newOwnedPokemonInfos);
+                OwnedPokemonInfo.getQuery().findInBackground(new FindCallback<OwnedPokemonInfo>() {
+                    @Override
+                    public void done(List<OwnedPokemonInfo> objects, ParseException e) {
+                        if (e == null && objects != null)
+                            OwnedPokemonInfo.deleteAllInBackground(objects);
+
+                        syncToDB(newOwnedPokemonInfos);
+                    }
+                });
+
             }
         });
 
