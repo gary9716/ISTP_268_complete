@@ -38,6 +38,7 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
     public static final String nameTextKey = "nameTextKey";
     public static final String profileImgUrlKey = "profileImgUrlKey";
     public static final String emailKey = "emailKey";
+
     static final int changeActivityInSecs = 5;
 
     final String[] pokemonNames = new String[]{
@@ -106,10 +107,6 @@ public class MainActivity extends CustomizedActivity implements View.OnClickList
                 nameOfTheTrainer = object.optString("name");
                 editor.putString(nameTextKey, nameOfTheTrainer);
                 editor.putString(emailKey, object.optString("email"));
-
-//                                Log.d("FB", object.optString("name"));
-//                                Log.d("FB", object.optString("email"));
-//                                Log.d("FB", object.optString("id"));
 
                 if (object.has("picture")) {
                     try {
