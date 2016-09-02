@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.android.gms.location.LocationListener;
+
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 
@@ -52,7 +53,7 @@ import java.util.HashSet;
 /**
  * Created by lab430 on 16/8/15.
  */
-public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallback, GeoCodingTask.GeoCodingResponse, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, PGMapDataManager.DataChangedListener, GoogleMap.OnMarkerClickListener{
+public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallback, GeoCodingTask.GeoCodingResponse, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, PGMapDataManager.DataChangedListener, GoogleMap.OnMarkerClickListener {
 
     public final static int ACCESS_FINE_LOCATION_REQUEST_CODE = 1;
 
@@ -94,7 +95,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if(fragmentView == null) {
+        if (fragmentView == null) {
             fragmentView = inflater.inflate(R.layout.fragment_map, container, false);
             mapFragment = SupportMapFragment.newInstance();
             mapFragment.getMapAsync(this);
@@ -125,22 +126,20 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        if(itemId == R.id.action_selecting_mode_switch) {
+        if (itemId == R.id.action_selecting_mode_switch) {
             markerSelectingMode = !markerSelectingMode;
-            if(markerSelectingMode) { //become selecting mode
+            if (markerSelectingMode) { //become selecting mode
                 item.setTitle("一般模式");
-            }
-            else {
+            } else {
                 //recover all routing markers
-                for(Marker marker : selectedMarkers) {
+                for (Marker marker : selectedMarkers) {
                     changeMarkerSelectedState(marker);
                 }
                 selectedMarkers.clear();
                 item.setTitle("選取模式");
             }
             return true;
-        }
-        else
+        } else
             return super.onOptionsItemSelected(item);
     }
 
@@ -164,7 +163,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
 
         //switch the image of a marker to this image if user click a marker
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.pokemon_selected_marker);
-        bitmap = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth() * 0.2f), (int)(bitmap.getHeight() * 0.2f), false);
+        bitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmap.getWidth() * 0.2f), (int) (bitmap.getHeight() * 0.2f), false);
         selectedBitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
 
         UiSettings mapUISettings = googleMap.getUiSettings();
@@ -173,9 +172,8 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         (new GeoCodingTask(PokemonMapFragment.this)).execute("台北市羅斯福路四段一號");
     }
 
-    private void createGoogleApiClient()
-    {
-        if(googleApiClient == null) {
+    private void createGoogleApiClient() {
+        if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(getActivity())
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
@@ -196,8 +194,7 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             requestLocationPermission(ACCESS_FINE_LOCATION_REQUEST_CODE);
-        }
-        else {
+        } else {
             doAfterPermissionGranted();
         }
 
@@ -206,10 +203,8 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == ACCESS_FINE_LOCATION_REQUEST_CODE)
-        {
-            if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            {
+        if (requestCode == ACCESS_FINE_LOCATION_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 doAfterPermissionGranted();
             }
         }
@@ -225,9 +220,9 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
 
     }
 
-    public void requestLocationPermission (int requestCode){
+    public void requestLocationPermission(int requestCode) {
         //below this version we only need to specify it in AndroidManifest
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, requestCode);
         }
     }
@@ -235,17 +230,20 @@ public class PokemonMapFragment extends ItemFragment implements OnMapReadyCallba
 
     @Override
     public void onLocationChanged(Location location) {
-        if(location != null)
+        if (location != null)
             currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
     }
 
 
     public void requestLocationUpdateService() {
-        if(locationRequest == null) {
+        if (locationRequest == null) {
             locationRequest = new LocationRequest();
             locationRequest.setInterval(5000);
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         }
     }

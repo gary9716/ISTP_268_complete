@@ -11,7 +11,7 @@ import java.util.ArrayList;
 /**
  * Created by lab430 on 16/7/24.
  */
-public class OwningPokemonDataManager {
+public class OwnedPokemonDataManager {
     Context mContext;
     Resources mRes;
     String packageName;
@@ -19,7 +19,7 @@ public class OwningPokemonDataManager {
     ArrayList<String> pokemonNames = null;
     OwnedPokemonInfo[] initThreePokemons = new OwnedPokemonInfo[3];
 
-    public OwningPokemonDataManager(Context context) {
+    public OwnedPokemonDataManager(Context context) {
         mContext = context;
         mRes = mContext.getResources();
         packageName = context.getPackageName();

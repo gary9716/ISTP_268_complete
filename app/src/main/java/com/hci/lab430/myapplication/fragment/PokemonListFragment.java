@@ -25,7 +25,7 @@ import com.hci.lab430.myapplication.MainActivity;
 import com.hci.lab430.myapplication.PokemonDetailActivity;
 import com.hci.lab430.myapplication.R;
 import com.hci.lab430.myapplication.adapter.PokemonInfoListViewAdapter;
-import com.hci.lab430.myapplication.model.OwningPokemonDataManager;
+import com.hci.lab430.myapplication.model.OwnedPokemonDataManager;
 import com.hci.lab430.myapplication.model.OwnedPokemonInfo;
 import com.hci.lab430.myapplication.model.Utils;
 import com.parse.FindCallback;
@@ -46,7 +46,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
     Activity activity;
 
     public PokemonInfoListViewAdapter adapter;
-    OwningPokemonDataManager dataManager;
+    OwnedPokemonDataManager dataManager;
     MediaPlayer mediaPlayer = null;
     Handler handler;
 
@@ -63,7 +63,7 @@ public class PokemonListFragment extends ItemFragment implements AdapterView.OnI
         activity = getActivity();
         handler = new Handler(activity.getMainLooper());
         mediaPlayer = Utils.loadSongFromAssets(activity, "healing_sound2.mp3");
-        dataManager = new OwningPokemonDataManager(activity);
+        dataManager = new OwnedPokemonDataManager(activity);
         dataManager.loadPokemonTypes();
 
         ownedPokemonInfos = new ArrayList<>();

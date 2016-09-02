@@ -15,7 +15,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.hci.lab430.myapplication.adapter.PokemonInfoListViewAdapter;
-import com.hci.lab430.myapplication.model.OwningPokemonDataManager;
+import com.hci.lab430.myapplication.model.OwnedPokemonDataManager;
 import com.hci.lab430.myapplication.model.OwnedPokemonInfo;
 import com.hci.lab430.myapplication.model.Utils;
 
@@ -27,7 +27,7 @@ import java.util.ArrayList;
  */
 public class PokemonListActivity extends CustomizedActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener, PokemonInfoListViewAdapter.OnPokemonInfoStateChangeListener {
     PokemonInfoListViewAdapter adapter;
-    OwningPokemonDataManager dataManager;
+    OwnedPokemonDataManager dataManager;
     MediaPlayer mediaPlayer = null;
     Handler handler;
     AlertDialog deleteActionDialog;
@@ -39,7 +39,7 @@ public class PokemonListActivity extends CustomizedActivity implements AdapterVi
 
         handler = new Handler(getMainLooper());
         mediaPlayer = Utils.loadSongFromAssets(this,"healing_sound2.mp3");
-        dataManager = new OwningPokemonDataManager(this);
+        dataManager = new OwnedPokemonDataManager(this);
         dataManager.loadPokemonTypes();
         dataManager.loadListViewData();
 

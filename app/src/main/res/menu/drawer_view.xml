@@ -10,5 +10,4 @@
         android:id="@+id/pokemon_map"
         android:title="神奇寶貝地圖"/>
 
-
 </menu>
