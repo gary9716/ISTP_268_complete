@@ -24,30 +24,37 @@
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".PokemonListActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".PokemonDetailActivity"
-            android:screenOrientation="portrait"></activity>
-        <activity android:name=".FragmentTestActivity"></activity>
+            android:screenOrientation="portrait" />
+        <activity android:name=".FragmentTestActivity" />
         <activity
             android:name=".DrawerActivity"
-            android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar">
-
-        </activity>
+            android:theme="@style/MaterialDrawerTheme.Light.DarkToolbar"></activity>
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-        <activity android:name=".TestAutoCompleteAct">
+        <activity android:name=".TestAutoCompleteAct"></activity>
 
+        <receiver android:name=".WifiEventReceiver">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <activity android:name=".TestThreadAndReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 
